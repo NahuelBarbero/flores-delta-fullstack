@@ -1,0 +1,43 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Diagnostic reports (https://nodejs.org/api/report.html)
+.report/
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Directory for placing compiled code, e.g. from TypeScript
+dist/
+build/
+.next/ # Next.js build output
+.svelte-kit/ # SvelteKit build output
+.nuxt/ # Nuxt.js build output
+.vite/ # Vite build output
+out/ # General output directory
+
+# Dependencies
+node_modules/
+jspm_packages/
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Optional data from services
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.*.local
+.DS_Store
+Thumbs.db
