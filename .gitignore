@@ -1,0 +1,74 @@
+# ================================
+# FLORES DELTA - .gitignore
+# ================================
+
+# ====== FRONTEND (React/Vite) ======
+FLORES-DELTA-FRONTEND/node_modules/
+FLORES-DELTA-FRONTEND/dist/
+FLORES-DELTA-FRONTEND/.vite/
+FLORES-DELTA-FRONTEND/.env
+FLORES-DELTA-FRONTEND/.env.local
+FLORES-DELTA-FRONTEND/.env.production
+FLORES-DELTA-FRONTEND/package-lock.json
+FLORES-DELTA-FRONTEND/yarn.lock
+
+# ====== BACKEND (Spring Boot) ======
+delta-flores/web/target/
+delta-flores/web/.mvn/
+delta-flores/web/mvnw
+delta-flores/web/mvnw.cmd
+delta-flores/web/.factorypath
+delta-flores/web/.settings/
+delta-flores/web/.project
+delta-flores/web/.classpath
+
+# Logs backend
+delta-flores/web/logs/
+delta-flores/web/*.log
+
+# ====== DOCKER & DATA ======
+docker-data/
+*.sql
+*.dump
+
+# Secrets
+*.env
+*.env.local
+application-secrets.properties
+
+# ====== IDE ======
+.vscode/
+.idea/
+*.iml
+*.swp
+*.swo
+*~
+
+# ====== OS ======
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ====== ARCHIVOS TEMPORALES ======
+*.tmp
+*.bak
+*.cache
+*.pyc
+__pycache__/
+*.ps1
+verificar_*.html
+
+# ====== BRAIN/ARTIFACTS (No subir) ======
+.gemini/
+
+# ====== DOCUMENTOS INTERNOS (Opcional) ======
+# AUDITORIA_TECNICA.md
+# REPORTE_*.md
+# CHECKPOINT_*.md
+# BUGS_TESTING_MANUAL.md
+
+# ====== MANTENER ======
+!README.md
+!INSTRUCCIONES_ARRANQUE.md
+!docker-compose.yml
+!.gitignore
