@@ -252,17 +252,8 @@ Proprietary - Flores Delta © 2025
 
 ## 👥 Autores
 
-- **Desarrollo:** Gaby B. + Gemini AI
-- **Concepto:** Socio Productivo
+- **Desarrollo:** 
+- Lautaro Cozzi
+- Nahuel Barbwro
 
 ---
-
-## 📞 Soporte
-
-Para soporte técnico o consultas:
-- Email: [TU_EMAIL]
-- GitHub Issues: [REPO_URL]/issues
-
----
-
-**Desarrollado con ❤️ para cultivadores profesionales**
