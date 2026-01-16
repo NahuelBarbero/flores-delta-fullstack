@@ -1,0 +1,50 @@
+package DeltaFlores.web.entities;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.springframework.format.annotation.DateTimeFormat;
+
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+
+@Entity
+@Getter
+@Setter
+@Table(name = "plant_events")
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "event_type")
+public abstract class PlantEvent {
+
+        @Column(name = "event_type", insertable = false, updatable = false)
+        private String eventType;
+
+        @Id
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
+        private Long id;
+
+        @ManyToMany(fetch = FetchType.LAZY)
+        @JsonIgnore
+        @JoinTable(name = "plants_has_events", joinColumns = @JoinColumn(name = "events_id"), inverseJoinColumns = @JoinColumn(name = "planta_id"))
+        private List<Planta> plantas = new ArrayList<>();
+
+        public List<Long> getPlantaIds() {
+                if (plantas == null)
+                        return new ArrayList<>();
+                List<Long> ids = new ArrayList<>();
+                for (Planta p : plantas) {
+                        ids.add(p.getId());
+                }
+                return ids;
+        }
+
+        @CreationTimestamp
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+        private LocalDate fecha;
+
+}

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificación de localStorage - Flores Delta</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        .result {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+        }
+        .safe {
+            background: #d4edda;
+            border-left: 5px solid #28a745;
+            color: #155724;
+        }
+        .vulnerable {
+            background: #f8d7da;
+            border-left: 5px solid #dc3545;
+            color: #721c24;
+        }
+        .info {
+            background: #d1ecf1;
+            border-left: 5px solid #17a2b8;
+            color: #0c5460;
+        }
+        .item {
+            padding: 8px;
+            margin: 5px 0;
+            background: #f8f9fa;
+            border-radius: 3px;
+        }
+        .item.critical {
+            background: #fff3cd;
+            border-left: 3px solid #ffc107;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #5568d3;
+        }
+        .danger-btn {
+            background: #dc3545;
+        }
+        .danger-btn:hover {
+            background: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Verificación de Seguridad - localStorage</h1>
+        <div id="results"></div>
+        <div id="actions"></div>
+    </div>
+
+    <script>
+        function verificarLocalStorage() {
+            const resultsDiv = document.getElementById('results');
+            const actionsDiv = document.getElementById('actions');
+            resultsDiv.innerHTML = '';
+            actionsDiv.innerHTML = '';
+
+            let html = '<h2>📦 Estado Actual de localStorage</h2>';
+            
+            // Contar items
+            html += `<div class="info"><strong>Total de items:</strong> ${localStorage.length}</div>`;
+
+            // Verificar si está vacío
+            if (localStorage.length === 0) {
+                html += '<div class="safe"><strong>✅ SEGURO:</strong> localStorage está completamente vacío. No hay vulnerabilidad XSS.</div>';
+            } else {
+                html += '<div class="vulnerable"><strong>⚠️ ATENCIÓN:</strong> localStorage contiene datos:</div>';
+                
+                // Listar todos los items
+                html += '<div style="margin: 15px 0;">';
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    const value = localStorage.getItem(key);
+                    const preview = value.length > 100 ? value.substring(0, 100) + '...' : value;
+                    
+                    const isCritical = ['token', 'user', 'GlobalContext'].includes(key);
+                    html += `<div class="item ${isCritical ? 'critical' : ''}">
+                        ${isCritical ? '❌' : '📄'} <strong>${key}:</strong> ${preview}
+                    </div>`;
+                }
+                html += '</div>';
+            }
+
+            // Verificación de seguridad específica
+            html += '<h2>🔐 Verificación de Items Críticos</h2>';
+            
+            const criticalItems = {
+                'token': 'Token JWT (altamente sensible)',
+                'user': 'Datos de usuario con rol',
+                'GlobalContext': 'Estado de negocio de la app'
+            };
+
+            let hasVulnerability = false;
+            for (const [key, description] of Object.entries(criticalItems)) {
+                const exists = localStorage.getItem(key) !== null;
+                if (exists) {
+                    hasVulnerability = true;
+                    html += `<div class="vulnerable">❌ <strong>${key}:</strong> ${description} - ENCONTRADO EN localStorage</div>`;
+                } else {
+                    html += `<div class="safe">✅ <strong>${key}:</strong> ${description} - NO está en localStorage</div>`;
+                }
+            }
+
+            // Session Storage
+            html += '<h2>💾 Session Storage (Solo para referencia)</h2>';
+            if (sessionStorage.length === 0) {
+                html += '<div class="info">Session Storage está vacío (normal si no hay sesión activa).</div>';
+            } else {
+                for (let i = 0; i < sessionStorage.length; i++) {
+                    const key = sessionStorage.key(i);
+                    const value = sessionStorage.getItem(key);
+                    html += `<div class="item">📄 <strong>${key}:</strong> ${value}</div>`;
+                }
+            }
+
+            // Resumen final
+            html += '<h2>📊 Veredicto Final</h2>';
+            if (!hasVulnerability && localStorage.length === 0) {
+                html += '<div class="safe" style="font-size: 18px; padding: 20px;"><strong>✅ APLICACIÓN SEGURA</strong><br>No hay datos sensibles en localStorage. La migración de seguridad fue exitosa.</div>';
+            } else if (!hasVulnerability && localStorage.length > 0) {
+                html += '<div class="info" style="font-size: 18px; padding: 20px;"><strong>⚠️ PARCIALMENTE SEGURO</strong><br>No hay datos críticos, pero hay otros items en localStorage.</div>';
+            } else {
+                html += '<div class="vulnerable" style="font-size: 18px; padding: 20px;"><strong>❌ VULNERABILIDAD XSS ACTIVA</strong><br>Datos sensibles expuestos en localStorage. Se requiere limpieza inmediata.</div>';
+                
+                // Botón de limpieza
+                actionsDiv.innerHTML = `
+                    <h3>🛠️ Acciones Disponibles</h3>
+                    <button onclick="limpiarTodo()" class="danger-btn">🗑️ Limpiar TODO localStorage</button>
+                    <button onclick="limpiarCriticos()">🔒 Limpiar solo items críticos</button>
+                    <button onclick="location.reload()">🔄 Recargar página</button>
+                `;
+            }
+
+            resultsDiv.innerHTML = html;
+        }
+
+        function limpiarTodo() {
+            if (confirm('¿Estás seguro de limpiar TODO el localStorage?\n\nEsto eliminará todos los datos almacenados localmente.')) {
+                localStorage.clear();
+                alert('✅ localStorage limpiado completamente');
+                setTimeout(() => location.reload(), 500);
+            }
+        }
+
+        function limpiarCriticos() {
+            const criticos = ['token', 'user', 'GlobalContext'];
+            criticos.forEach(key => localStorage.removeItem(key));
+            alert('✅ Items críticos eliminados (token, user, GlobalContext)');
+            setTimeout(() => location.reload(), 500);
+        }
+
+        // Ejecutar verificación automáticamente al cargar
+        window.onload = verificarLocalStorage;
+
+        // Actualizar cada 3 segundos
+        setInterval(verificarLocalStorage, 3000);
+    </script>
+</body>
+</html>

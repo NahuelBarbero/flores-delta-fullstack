@@ -1,0 +1,382 @@
+==================================================
+DOCUMENTACIÓN DEL BACKEND - FLORES DELTA
+==================================================
+
+Este documento contiene la especificación de los endpoints, la arquitectura y las dependencias del backend del proyecto FLORES DELTA.
+
+--------------------
+SECCIÓN: Arquitectura
+--------------------
+
+---
+SUBSUBSECCIÓN: Estructura de Directorios (Típica de Spring Boot)
+---
+- Sources Root: Código fuente de la aplicación.
+- Test Sources Root: Código fuente para pruebas.
+- Resources Root: Archivos de recursos (e.g., application.properties).
+- Test Resources Root: Recursos para pruebas.
+- Generated Sources Root: Código fuente generado automáticamente.
+
+---
+SUBSECCIÓN: Lógica de Negocio Específica - Riego Masivo
+---
+El sistema permite realizar un riego masivo a todas las plantas activas dentro de una sala y zona específicas.
+
+1. Se reciben los parámetros `sala_id` y `zona_id`.
+2. Se buscan en la tabla `plant_assignment` todas las asignaciones que no tengan `fecha_fin` (asignaciones activas) y que coincidan con `sala_id` y `zona_id`.
+3. Por cada asignación activa encontrada, se crea un nuevo `PlantEvent` de tipo `RIEGO`.
+
+Consulta SQL de ejemplo:
+SELECT *
+FROM plant_assignment
+WHERE sala_id = :salaId
+  AND zona_id = :zonaId
+  AND fecha_fin IS NULL;
+
+--------------------
+SECCIÓN: Dependencias del Proyecto
+--------------------
+
+- Dependencia: Spring Web
+  Propósito: Creación de la API REST.
+
+- Dependencia: Spring Security
+  Propósito: Gestión de autenticación, roles y login.
+
+- Dependencia: OAuth2 Client
+  Propósito: Implementación de login con Google.
+
+- Dependencia: Spring Data JPA
+  Propósito: Acceso y persistencia de datos.
+
+- Dependencia: PostgreSQL Driver
+  Propósito: Conexión a la base de datos PostgreSQL.
+
+- Dependencia: Validation
+  Propósito: Validación de datos en formularios.
+
+- Dependencia: Lombok
+  Propósito: Reducción de código repetitivo (boilerplate).
+
+- Dependencia: Actuator
+  Propósito: Monitoreo de la aplicación.
+
+- Dependencia: DevTools
+  Propósito: Recarga automática en entorno de desarrollo.
+
+
+--------------------
+SECCIÓN: API Endpoints
+--------------------
+
+---
+CONTROLADOR: User Controller
+RUTA BASE: /api/users
+---
+- Método: GET, Ruta: /{id}
+    - Descripción: Obtiene los datos de un usuario específico por su ID.
+    - Permisos: **SUPER_ADMIN** o el propio usuario ({id} debe ser el ID del usuario autenticado).
+    - Parámetros de Ruta: id (Long) - ID del usuario a buscar.
+- Método: PUT, Ruta: /{id}
+    - Descripción: Actualiza los datos de un usuario.
+    - Permisos: **SUPER_ADMIN** o el propio usuario ({id} debe ser el ID del usuario autenticado).
+    - Parámetros de Ruta: id (Long) - ID del usuario a actualizar.
+    - Body (JSON): Contiene los datos UserDto actualizados (ej. nombre, apellido, username).
+      ```json
+      {                                                                                                                                                                                                                                
+          "email": "nuevo.usuario@example.com",                                                                                                                                                                                          
+          "password": "passwordSegura123",                                                                                                                                                                                               
+          "nombre": "Nuevo",                                                                                                                                                                                                             
+          "apellido": "Usuario"                                                                                                                                                                                                          
+      }
+      ```
+- Método: DELETE, Ruta: /{id}
+    - Descripción: Elimina un usuario.
+    - Permisos: **SUPER_ADMIN**
+    - Parámetros de Ruta: id (Long) - ID del usuario a eliminar.
+- Método: POST, Ruta: /register
+    - Descripción: Registra un nuevo usuario (GROWER por defecto).
+    - Permisos: **SUPER_ADMIN**
+    - Body (JSON): Contiene los datos UserDto del nuevo usuario.
+- Método: GET, Ruta: /
+    - Descripción: Obtiene la lista de todos los usuarios registrados.
+    - Permisos: **ADMIN**, **SUPER_ADMIN**
+- Método: GET, Ruta: /nombre/{nombre}
+    - Descripción: Busca usuarios por su nombre.
+    - Permisos: **SUPER_ADMIN**
+    - Parámetros de Ruta: nombre (String) - Nombre del usuario a buscar.
+
+---
+CONTROLADOR: Sala Controller
+RUTA BASE: /api/salas
+---
+- Método: POST, Ruta: /
+    - Permisos: GROWER, ADMIN, SUPER_ADMIN.
+    - Descripción: Crea una nueva sala. Se asigna automáticamente al usuario autenticado.
+    - Body (JSON): Contiene los datos SalaDto para la nueva sala.
+      ```json
+      {
+          "nombre": "Sala de Crecimiento",
+          "descripcion": "Espacio para el inicio de las plantas",
+          "horasLuz": "18/6",
+          "humedad": 60.0,
+          "temperaturaAmbiente": 23.0
+      }
+      ```
+- Método: GET, Ruta: /{id}
+    - Permisos: GROWER (si es el dueño de la sala), ADMIN, SUPER_ADMIN.
+    - Descripción: Obtiene los detalles de una sala específica.
+    - Parámetros de Ruta: id (Long) - ID de la sala.
+- Método: PUT, Ruta: /{id}
+    - Permisos: GROWER (si es el dueño de la sala), ADMIN, SUPER_ADMIN.
+    - Descripción: Actualiza los datos de una sala.
+    - Parámetros de Ruta: id (Long) - ID de la sala a actualizar.
+    - Body (JSON): Contiene los datos SalaDto actualizados (ej. nombre, descripción, horasLuz, humedad, temperaturaAmbiente).
+- Método: DELETE, Ruta: /{id}
+    - Permisos: GROWER (si es el dueño de la sala), ADMIN, SUPER_ADMIN.
+    - Descripción: Elimina una sala.
+    - Parámetros de Ruta: id (Long) - ID de la sala a eliminar.
+
+---
+CONTROLADOR: Planta Controller
+RUTA BASE: /api/plantas
+---
+- Método: POST, Ruta: /
+    - Permisos: GROWER, ADMIN, SUPER_ADMIN.
+    - Descripción: Crea una nueva planta. Se asigna automáticamente al usuario autenticado y a la sala especificada (siempre que el usuario autenticado sea el dueño de esa sala o un administrador).
+    - Body (JSON):
+      ```json
+      {
+          "nombre": "Planta de Prueba",
+          "etapa": "VEGETACION",
+          "sala": { "id": 1 },
+          "cepaDto": { "id": 1 },
+          "produccion": 0,
+          "ubicacion": "Estante Superior",
+          "fechaCreacion": "2025-11-26"
+      }
+      ```
+- Método: GET, Ruta: /
+    - Permisos: GROWER, ADMIN, SUPER_ADMIN.
+    - Descripción: Para GROWER, devuelve solo las plantas de su propiedad. Para ADMIN/SUPER_ADMIN, devuelve todas las plantas del sistema.
+- Método: GET, Ruta: /{id}
+    - Permisos: GROWER (si es el dueño de la planta), ADMIN, SUPER_ADMIN.
+    - Descripción: Obtiene los detalles de una planta específica.
+    - Parámetros de Ruta: id (Long) - ID de la planta.
+- Método: PUT, Ruta: /{id}
+    - Permisos: GROWER (si es el dueño de la planta), ADMIN, SUPER_ADMIN.
+    - Descripción: Actualiza los datos de una planta. Verifica la propiedad de la planta y de la sala si esta se cambia.
+    - Parámetros de Ruta: id (Long) - ID de la planta a actualizar.
+    - Body (JSON): Contiene los datos PlantaDto actualizados.
+- Método: DELETE, Ruta: /{id}
+    - Permisos: GROWER (si es el dueño de la planta), ADMIN, SUPER_ADMIN.
+    - Descripción: Elimina una planta.
+    - Parámetros de Ruta: id (Long) - ID de la planta a eliminar.
+- Método: GET, Ruta: /search
+    - Permisos: GROWER, ADMIN, SUPER_ADMIN.
+    - Descripción: Busca plantas por nombre. Para GROWER, busca solo entre sus plantas. Para ADMIN/SUPER_ADMIN, busca entre todas las plantas.
+    - Parámetros de Query: `palabraClave` (String) - Palabra clave a buscar en el nombre de la planta.
+- Método: GET, Ruta: /sala/{salaId}
+    - Permisos: GROWER (si es el dueño de la sala), ADMIN, SUPER_ADMIN.
+    - Descripción: Lista las plantas que se encuentran en una sala específica (solo si el usuario tiene acceso a esa sala).
+    - Parámetros de Ruta: salaId (Long) - ID de la sala.
+
+---
+CONTROLADOR: Cepa Controller
+RUTA BASE: /cepas
+---
+- Método: GET, Ruta: /{id}, Descripción: (Pendiente)
+- Método: PUT, Ruta: /{id}, Descripción: (Pendiente)
+- Método: DELETE, Ruta: /{id}, Descripción: (Pendiente)
+- Método: GET, Ruta: /, Descripción: (Pendiente)
+- Método: POST, Ruta: /, Descripción: (Pendiente)
+
+### Lógica de Control de Acceso en CepaService
+
+- `createCepa`: Cualquier usuario autenticado puede crear una cepa, siendo su propietario.
+- `getCepasForCurrentUser`: Devuelve solo las cepas del usuario autenticado.
+- `getCepasByUserId`: (Restringido a SUPER_ADMIN) Devuelve todas las cepas de un usuario específico.
+- `getCepaById`: Permite el acceso al propietario, ROLE_ADMIN o ROLE_SUPER_ADMIN.
+- `updateCepa`: Permite el acceso al propietario o a ROLE_SUPER_ADMIN.
+- `deleteCepa`: Permite el acceso al propietario o a ROLE_SUPER_ADMIN.
+
+---
+CONTROLADOR: Nutriente Controller
+RUTA BASE: /api/nutrientes
+---
+- Método: GET, Ruta: /{id}, Descripción: (Pendiente)
+- Método: PUT, Ruta: /{id}, Descripción: (Pendiente)
+- Método: DELETE, Ruta: /{id}, Descripción: (Pendiente)
+- Método: GET, Ruta: /, Descripción: (Pendiente)
+- Método: POST, Ruta: /, Descripción: (Pendiente)
+- Método: GET, Ruta: /titulo/{titulo}, Descripción: (Pendiente)
+
+---
+CONTROLADOR: Favorite Controller
+RUTA BASE: /api/favoritos
+---
+- Método: POST, Ruta: /, Descripción: (Pendiente)
+- Método: GET, Ruta: /usuario/{usuarioId}, Descripción: (Pendiente)
+- Método: DELETE, Ruta: /planta/{plantaId}, Descripción: (Pendiente)
+
+---
+CONTROLADOR: Plant Event Controller
+RUTA BASE: /api/plantas/{plantaId}/events
+---
+- Método: GET, Ruta: /, Descripción: (Pendiente)
+
+---
+CONTROLADOR: Defoliation Event Controller
+RUTA BASE: /api/events/defoliation
+---
+- Método: GET, Ruta: /{id}, Descripción: (Pendiente)
+- Método: PUT, Ruta: /{id}, Descripción: (Pendiente)
+- Método: DELETE, Ruta: /{id}, Descripción: (Pendiente)
+- Método: GET, Ruta: /, Descripción: (Pendiente)
+- Método: POST, Ruta: /, Descripción: (Pendiente)
+- Método: GET, Ruta: /planta/{plantaId}, Descripción: (Pendiente)
+- Método: GET, Ruta: /by-date/{fecha}, Descripción: (Pendiente)
+- Método: GET, Ruta: /by-date-after/{fecha}, Descripción: (Pendiente)
+
+---
+CONTROLADOR: Measurement Event Controller
+RUTA BASE: /api/events/measurement
+---
+- Método: GET, Ruta: /{id}, Descripción: (Pendiente)
+- Método: PUT, Ruta: /{id}, Descripción: (Pendiente)
+- Método: DELETE, Ruta: /{id}, Descripción: (Pendiente)
+- Método: GET, Ruta: /, Descripción: (Pendiente)
+- Método: POST, Ruta: /, Descripción: (Pendiente)
+- Método: GET, Ruta: /planta/{plantaId}, Descripción: (Pendiente)
+- Método: GET, Ruta: /by-date/{fecha}, Descripción: (Pendiente)
+- Método: GET, Ruta: /by-date-after/{fecha}, Descripción: (Pendiente)
+
+---
+CONTROLADOR: Note Event Controller
+RUTA BASE: /api/events/note
+---
+- Método: GET, Ruta: /{id}, Descripción: (Pendiente)
+- Método: PUT, Ruta: /{id}, Descripción: (Pendiente)
+- Método: DELETE, Ruta: /{id}, Descripción: (Pendiente)
+- Método: GET, Ruta: /, Descripción: (Pendiente)
+- Método: POST, Ruta: /, Descripción: (Pendiente)
+- Método: GET, Ruta: /planta/{plantaId}, Descripción: (Pendiente)
+- Método: GET, Ruta: /by-date/{fecha}, Descripción: (Pendiente)
+- Método: GET, Ruta: /by-date-after/{fecha}, Descripción: (Pendiente)
+
+---
+CONTROLADOR: Nutrient Event Controller
+RUTA BASE: /api/events/nutrient
+---
+- Método: GET, Ruta: /{id}, Descripción: (Pendiente)
+- Método: PUT, Ruta: /{id}, Descripción: (Pendiente)
+- Método: DELETE, Ruta: /{id}, Descripción: (Pendiente)
+- Método: GET, Ruta: /, Descripción: (Pendiente)
+- Método: POST, Ruta: /, Descripción: (Pendiente)
+- Método: GET, Ruta: /planta/{plantaId}, Descripción: (Pendiente)
+- Método: GET, Ruta: /by-date/{fecha}, Descripción: (Pendiente)
+- Método: GET, Ruta: /by-date-after/{fecha}, Descripción: (Pendiente)
+
+---
+CONTROLADOR: Stage Change Event Controller
+RUTA BASE: /api/events/stage-change
+---
+- Método: GET, Ruta: /{id}, Descripción: (Pendiente)
+- Método: PUT, Ruta: /{id}, Descripción: (Pendiente)
+- Método: DELETE, Ruta: /{id}, Descripción: (Pendiente)
+- Método: GET, Ruta: /, Descripción: (Pendiente)
+- Método: POST, Ruta: /, Descripción: (Pendiente)
+- Método: GET, Ruta: /planta/{plantaId}, Descripción: (Pendiente)
+- Método: GET, Ruta: /by-date/{fecha}, Descripción: (Pendiente)
+- Método: GET, Ruta: /by-date-after/{fecha}, Descripción: (Pendiente)
+
+---
+CONTROLADOR: Watering Event Controller
+RUTA BASE: /api/events/watering
+---
+- Método: GET, Ruta: /{id}, Descripción: (Pendiente)
+- Método: PUT, Ruta: /{id}, Descripción: (Pendiente)
+- Método: DELETE, Ruta: /{id}, Descripción: (Pendiente)
+- Método: GET, Ruta: /, Descripción: (Pendiente)
+- Método: POST, Ruta: /, Descripción: (Pendiente)
+- Método: GET, Ruta: /planta/{plantaId}, Descripción: (Pendiente)
+- Método: GET, Ruta: /by-date/{fecha}, Descripción: (Pendiente)
+- Método: GET, Ruta: /by-date-after/{fecha}, Descripción: (Pendiente)
+
+---
+CONTROLADOR: Pruning Event Controller
+RUTA BASE: /api/events/pruning
+---
+- Método: GET, Ruta: /{id}, Descripción: (Pendiente)
+- Método: PUT, Ruta: /{id}, Descripción: (Pendiente)
+- Método: DELETE, Ruta: /{id}, Descripción: (Pendiente)
+- Método: GET, Ruta: /, Descripción: (Pendiente)
+- Método: POST, Ruta: /, Descripción: (Pendiente)
+- Método: GET, Ruta: /planta/{plantaId}, Descripción: (Pendiente)
+- Método: GET, Ruta: /by-date/{fecha}, Descripción: (Pendiente)
+- Método: GET, Ruta: /by-date-after/{fecha}, Descripción: (Pendiente)
+
+
+--------------------
+SECCIÓN: API Endpoints
+--------------------
+
+---
+CONTROLADOR: Logs Controller
+RUTA BASE: /api/logs
+---
+- Método: GET, Ruta: /
+    - Permisos: ADMIN, SUPER_ADMIN.
+    - Descripción: Obtiene las últimas 500 líneas del log de la aplicación.
+- Método: GET, Ruta: /?lines={number}
+    - Permisos: ADMIN, SUPER_ADMIN.
+    - Descripción: Obtiene las últimas {number} líneas del log de la aplicación.
+    - Parámetros de Query: `lines` (int, opcional) - Número de líneas a obtener. Por defecto, 500.
+
+### Ejemplo de Uso (Frontend React)
+
+```javascript
+import React, { useState, useEffect } from 'react';
+
+function LogViewer() {
+    const [logs, setLogs] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        // Asume que tienes una función `api` que hace fetch y maneja la autenticación.
+        fetch('/api/logs?lines=200') // Pide las últimas 200 líneas
+            .then(response => response.json())
+            .then(data => {
+                // Los logs vienen en orden cronológico, los invertimos para ver los más nuevos arriba.
+                setLogs(data.reverse());
+                setIsLoading(false);
+            })
+            .catch(error => {
+                console.error('Error fetching logs:', error);
+                setIsLoading(false);
+            });
+    }, []);
+
+    if (isLoading) {
+        return <div>Cargando logs...</div>;
+    }
+
+    return (
+        <div>
+            <h1>Visor de Logs del Servidor</h1>
+            <pre style={{
+                backgroundColor: '#f4f4f4',
+                border: '1px solid #ddd',
+                padding: '10px',
+                maxHeight: '70vh',
+                overflowY: 'auto'
+            }}>
+                {logs.join('\n')}
+            </pre>
+        </div>
+    );
+}
+
+export default LogViewer;
+```
+

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Debug Auth - Flores Delta</title>
+    <style>
+        body {
+            font-family: Arial;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+
+        .success {
+            color: #4ade80;
+        }
+
+        .error {
+            color: #ef4444;
+        }
+
+        .warning {
+            color: #fbbf24;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 10px 5px;
+            cursor: pointer;
+        }
+
+        pre {
+            background: #2a2a2a;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+
+        .status-box {
+            background: #2a2a2a;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #3b82f6;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🔍 Diagnóstico de Autenticación</h1>
+
+    <div class="status-box">
+        <h3>Estado SessionStorage:</h3>
+        <pre id="storageStatus">Cargando...</pre>
+    </div>
+
+    <button onclick="testLogin()">1. Probar Login</button>
+    <button onclick="clearStorage()">2. Limpiar SessionStorage</button>
+    <button onclick="checkStorage()">3. Revisar Token</button>
+
+    <div class="status-box">
+        <h3>Resultado:</h3>
+        <pre id="result">Esperando acción...</pre>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8080';
+
+        function checkStorage() {
+            const token = sessionStorage.getItem('auth_token');
+            const sessionActive = sessionStorage.getItem('session_active');
+
+            const status = {
+                token: token ? `${token.substring(0, 50)}...` : '❌ NULL',
+                session_active: sessionActive || '❌ NULL',
+                length: token ? token.length : 0
+            };
+
+            document.getElementById('storageStatus').textContent = JSON.stringify(status, null, 2);
+
+            if (token) {
+                document.getElementById('result').innerHTML = '<span class="success">✅ Token encontrado! La app debería funcionar.</span>';
+            } else {
+                document.getElementById('result').innerHTML = '<span class="error">❌ No hay token. Necesitas hacer login.</span>';
+            }
+        }
+
+        async function testLogin() {
+            document.getElementById('result').textContent = 'Intentando login...';
+
+            try {
+                const response = await fetch(`${API_URL}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: 'admin@delta.com',
+                        password: 'admin123'
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+                }
+
+                const data = await response.json();
+
+                // Guardar token
+                sessionStorage.setItem('auth_token', data.token);
+                sessionStorage.setItem('session_active', 'true');
+
+                document.getElementById('result').innerHTML =
+                    `<span class="success">✅ LOGIN EXITOSO!</span>\n` +
+                    `Email: ${data.email}\n` +
+                    `Role: ${data.role}\n` +
+                    `Token guardado en sessionStorage\n\n` +
+                    `<span class="warning">Ahora recarga la app principal (F5)</span>`;
+
+                checkStorage();
+            } catch (error) {
+                document.getElementById('result').innerHTML =
+                    `<span class="error">❌ ERROR:</span>\n${error.message}`;
+            }
+        }
+
+        function clearStorage() {
+            sessionStorage.clear();
+            document.getElementById('result').innerHTML =
+                '<span class="warning">🗑️ SessionStorage limpiado</span>';
+            checkStorage();
+        }
+
+        // Check al cargar
+        checkStorage();
+    </script>
+</body>
+
+</html>
