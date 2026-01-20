@@ -49,7 +49,7 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/login", "/swagger-ui/**", "/v3/api-docs/**", "/api/users/register",
-                                "/api/users/seed-admin", "/api/users/check-pass", "/actuator/**")
+                                "/api/users/seed-admin", "/api/users/check-pass", "/actuator/health")
                         .permitAll() // Allow registration & seeding & diagnose
                         .anyRequest().authenticated())
                 // .anyRequest().permitAll())

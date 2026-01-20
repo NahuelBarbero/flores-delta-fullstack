@@ -75,7 +75,7 @@ export const UniversalEntryForm = ({ plantaId, onClose, defaultType = "NOTE" }: 
         resolver: zodResolver(entrySchema),
         defaultValues: {
             eventType: defaultType,
-            fecha: new Date().toISOString(),
+            fecha: new Date().toISOString().split('T')[0],
             observacion: "",
             phAgua: "",
             ecAgua: "",
