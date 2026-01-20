@@ -49,7 +49,7 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/login", "/swagger-ui/**", "/v3/api-docs/**", "/api/users/register",
-                                "/api/users/seed-admin", "/api/users/check-pass")
+                                "/api/users/seed-admin", "/api/users/check-pass", "/actuator/**")
                         .permitAll() // Allow registration & seeding & diagnose
                         .anyRequest().authenticated())
                 // .anyRequest().permitAll())
@@ -76,8 +76,13 @@ public class WebSecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:8081", "http://localhost", "http://127.0.0.1")); // O la URL de tu
-                                                                                                    // frontend
+        configuration.setAllowedOrigins(
+                List.of("http://localhost:5173", "http://localhost:8081", "http://localhost", "http://127.0.0.1")); // O
+                                                                                                                    // la
+                                                                                                                    // URL
+                                                                                                                    // de
+                                                                                                                    // tu
+        // frontend
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         configuration.setAllowCredentials(true);

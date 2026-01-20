@@ -42,7 +42,7 @@ export const WateringForm = ({ onBack, onClose, plantaId, eventToEdit }: Waterin
     const form = useForm<WateringFormData>({
         resolver: zodResolver(wateringSchema),
         defaultValues: {
-            fecha: eventToEdit?.fecha || new Date().toISOString(),
+            fecha: eventToEdit?.fecha || new Date().toISOString().split('T')[0],
             phAgua: eventToEdit?.phAgua?.toString() || "",
             ecAgua: eventToEdit?.ecAgua?.toString() || "",
         },
