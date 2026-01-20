@@ -51,7 +51,7 @@ flores-delta-mvp/
 
 ### Prerequisites
 
-- Java 17+
+- Java 21+
 - Node.js 18+
 - PostgreSQL 15
 - Maven 3.8+ (included via mvnw)

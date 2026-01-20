@@ -178,7 +178,7 @@ Proyecto desarrollado por el equipo Flores Delta
 
 **Stack Tecnológico:**
 - Spring Boot 3.2
-- Java 17
+- Java 21
 - PostgreSQL 15
 - MinIO
 - JWT Authentication
