@@ -154,7 +154,7 @@ export const NutrientsForm = ({ onBack, onClose, plantaId, eventToEdit }: Nutrie
     }
 
     const payload = {
-      fecha: eventToEdit?.fecha || new Date().toISOString(),
+      fecha: eventToEdit?.fecha || new Date().toISOString().split('T')[0],
       plantaIds: [parseInt(selectedPlantaId)],
       nutriente: { id: parseInt(data.nutriente_id) },
     };

@@ -141,7 +141,7 @@ export const StageChangeForm = ({ onBack, onClose, plantaId, eventToEdit }: Stag
     }
 
     const payload = {
-      fecha: eventToEdit?.fecha || new Date().toISOString(),
+      fecha: eventToEdit?.fecha || new Date().toISOString().split('T')[0],
       plantaIds: [parseInt(selectedPlantaId)],
       nuevaEtapa: data.nuevaEtapa,
     };

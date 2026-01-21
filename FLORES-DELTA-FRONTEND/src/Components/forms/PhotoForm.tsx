@@ -166,7 +166,7 @@ export const PhotoForm = ({ onBack, onClose, plantaId, eventToEdit }: PhotoFormP
     }
 
     const formData = new FormData();
-    formData.append("fecha", eventToEdit?.fecha || new Date().toISOString());
+    formData.append("fecha", eventToEdit?.fecha || new Date().toISOString().split('T')[0]);
     formData.append("plantaIds", selectedPlantaId);
     formData.append("description", data.description || "");
 
