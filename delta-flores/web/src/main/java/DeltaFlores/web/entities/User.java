@@ -29,6 +29,7 @@ public class User implements UserDetails {
     @Column(nullable = false, unique = true)
     private String username;
 
+
     @Column(nullable = false)
     private String password;
     @Column
@@ -41,45 +42,29 @@ public class User implements UserDetails {
     private AppRole rol;
 
     @CreationTimestamp
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern="yyyy-MM-dd")
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     private LocalDate fechaRegistro;
 
     @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.DETACH, mappedBy = "user")
-    private Set<Favorite> favoritos = new HashSet<>();
+    @OneToMany(fetch = FetchType.EAGER,cascade = CascadeType.DETACH, mappedBy = "user")
+    private Set<Favorite> favoritos=new HashSet<>();
 
     @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Cepa> cepas = new ArrayList<>();
+
+
+
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return Collections.singletonList(new SimpleGrantedAuthority(rol.name()));
     }
 
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
+    public User(){}
 
-    @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
 
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return true;
-    }
-
-    public User() {
-    }
 
     @Override
     public String toString() {

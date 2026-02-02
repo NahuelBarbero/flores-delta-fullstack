@@ -25,31 +25,15 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-            throws ServletException, IOException {
-        String token = null;
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        Cookie jwtCookie = WebUtils.getCookie(request, "jwt");
 
-        // PRIORITY 1: Try Authorization Bearer header (used by frontend)
-        String bearerToken = request.getHeader("Authorization");
-        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
-            token = bearerToken.substring(7);
-            log.debug("JWT extracted from Authorization header");
-        } else {
-            // PRIORITY 2: Fallback to cookie (backward compatibility)
-            Cookie jwtCookie = WebUtils.getCookie(request, "jwt");
-            if (jwtCookie != null) {
-                token = jwtCookie.getValue();
-                log.debug("JWT extracted from cookie");
-            }
-        }
-
-        // If no token found in either location, continue without authentication
-        if (token == null) {
-            log.debug("No JWT token found in request (checked header and cookie)");
+        if (jwtCookie == null) {
             filterChain.doFilter(request, response);
             return;
         }
 
+        String token = jwtCookie.getValue();
         String username = null;
 
         try {
@@ -72,7 +56,8 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
                         userId,
                         username,
                         "", // Password is not needed for the principal in this context
-                        AuthorityUtils.createAuthorityList(role));
+                        AuthorityUtils.createAuthorityList(role)
+                );
 
                 if (jwtUtils.validateToken(token, principal)) {
                     UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
@@ -80,12 +65,11 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().setAuthentication(authentication);
 
                     log.info("\n" +
-                            "---------------------------------------------------------------------------------------------------------"
-                            +
+                            "---------------------------------------------------------------------------------------------------------" +
                             "\n🔒 Acceso autorizado 🔒\n" +
-                            "Usuario: {}\n" +
-                            "ID: {}\n" +
-                            "Rol: {}", principal.getUsername(), principal.getId(), role);
+                             "Usuario: {}\n" +
+                             "ID: {}\n" +
+                             "Rol: {}", principal.getUsername(), principal.getId(), role);
                 }
             }
         }

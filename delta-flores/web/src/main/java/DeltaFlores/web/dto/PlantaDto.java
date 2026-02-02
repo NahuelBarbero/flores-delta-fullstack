@@ -25,18 +25,14 @@ public class PlantaDto implements Serializable {
     private Long salaId;
     private int produccion;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern="yyyy-MM-dd")
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     private LocalDate fechaCreacion;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern="yyyy-MM-dd")
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     private LocalDate fechaFin;
     private List<Long> eventIds;
     private Long cepaId;
     private String ubicacion;
-
-    // Nested objects for frontend display
-    private SalaDto sala;
-    private CepaDto cepaDto;
 }

@@ -16,11 +16,11 @@ public class CepaDto implements Serializable {
 
     private Long id;
     private String geneticaParental;
-    private String dominancia;
-    private String aromaSabor;
+    private String Dominancia;
+    private String AromaSabor;
     private String thc;
     private String cbd;
     private String detalle;
     private Long userId;
-
+    
 }

@@ -19,25 +19,17 @@ public class Sala {
     private String nombre;
     private String descripcion;
 
-    private String horasLuz;
-    private Double humedad;
-    private Double temperaturaAmbiente;
 
-    // Nuevo: Tipo de ambiente (INTERIOR o EXTERIOR)
-    @Enumerated(EnumType.STRING)
-    @Column(name = "tipo_ambiente")
-    private TipoAmbiente tipoAmbiente;
-
-    // Nuevo: URL de imagen personalizada para la sala
-    @Column(name = "imagen_url")
-    private String imagenUrl;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    @JsonBackReference
-    private User user;
-
-    @OneToMany(mappedBy = "sala", cascade = CascadeType.DETACH)
-    private Set<Planta> plantas = new HashSet<>();
-
+            private String horasLuz;
+            private Double humedad;
+            private Double temperaturaAmbiente;
+        
+            @ManyToOne(fetch = FetchType.LAZY)
+            @JoinColumn(name = "user_id", nullable = false)
+            @JsonBackReference
+            private User user;
+        
+            @OneToMany(mappedBy = "sala", cascade = CascadeType.DETACH)
+            private Set<Planta> plantas = new HashSet<>();
+        
 }

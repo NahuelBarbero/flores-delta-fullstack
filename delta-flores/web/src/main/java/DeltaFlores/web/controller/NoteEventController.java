@@ -26,10 +26,11 @@ public class NoteEventController {
     @PostMapping
     @PreAuthorize("hasRole('GROWER') or hasRole('ADMIN')")
     public ResponseEntity<NoteEventDto> createNoteEvent(
-            @RequestBody NoteEventDto noteEventDto) {
+            @ModelAttribute NoteEventDto noteEventDto,
+            @RequestParam(value = "files", required = false) List<MultipartFile> files) {
         log.info("\n\n[Capa Controller] 📅 Solicitud para crear evento de nota.");
         try {
-            NoteEventDto createdEvent = noteEventService.createNoteEvent(noteEventDto, null);
+            NoteEventDto createdEvent = noteEventService.createNoteEvent(noteEventDto, files);
             log.info("\n\n[Capa Controller] ✅ Evento de nota creado con éxito con ID: {}", createdEvent.getId());
             return new ResponseEntity<>(createdEvent, HttpStatus.CREATED);
         } catch (Exception e) {
@@ -75,12 +76,10 @@ public class NoteEventController {
         log.info("\n\n[Capa Controller] 🔎 Solicitud para obtener eventos de nota por ID de planta: {}", plantaId);
         try {
             List<NoteEventDto> events = noteEventService.getNoteEventsByPlantaId(plantaId);
-            log.info("\n\n[Capa Controller] ✅ {} eventos de nota obtenidos para planta ID: {}.", events.size(),
-                    plantaId);
+            log.info("\n\n[Capa Controller] ✅ {} eventos de nota obtenidos para planta ID: {}.", events.size(), plantaId);
             return ResponseEntity.ok(events);
         } catch (Exception e) {
-            log.error("\n\n[Capa Controller] ❌ Error al obtener eventos de nota por planta ID {}: {}", plantaId,
-                    e.getMessage(), e);
+            log.error("\n\n[Capa Controller] ❌ Error al obtener eventos de nota por planta ID {}: {}", plantaId, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -95,8 +94,7 @@ public class NoteEventController {
             log.info("\n\n[Capa Controller] ✅ {} eventos de nota obtenidos para la fecha: {}.", events.size(), fecha);
             return ResponseEntity.ok(events);
         } catch (Exception e) {
-            log.error("\n\n[Capa Controller] ❌ Error al obtener eventos de nota para la fecha {}: {}", fecha,
-                    e.getMessage(), e);
+            log.error("\n\n[Capa Controller] ❌ Error al obtener eventos de nota para la fecha {}: {}", fecha, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -108,12 +106,10 @@ public class NoteEventController {
         log.info("\n\n[Capa Controller] 🔎 Solicitud para obtener eventos de nota posteriores a la fecha: {}", fecha);
         try {
             List<NoteEventDto> events = noteEventService.getNoteEventsByFechaAfter(fecha);
-            log.info("\n\n[Capa Controller] ✅ {} eventos de nota obtenidos posteriores a la fecha: {}.", events.size(),
-                    fecha);
+            log.info("\n\n[Capa Controller] ✅ {} eventos de nota obtenidos posteriores a la fecha: {}.", events.size(), fecha);
             return ResponseEntity.ok(events);
         } catch (Exception e) {
-            log.error("\n\n[Capa Controller] ❌ Error al obtener eventos de nota posteriores a la fecha {}: {}", fecha,
-                    e.getMessage(), e);
+            log.error("\n\n[Capa Controller] ❌ Error al obtener eventos de nota posteriores a la fecha {}: {}", fecha, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -133,8 +129,7 @@ public class NoteEventController {
             log.warn("\n\n[Capa Controller] ⚠️ Evento de nota con ID: {} no encontrado para actualizar.", id);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         } catch (Exception e) {
-            log.error("\n\n[Capa Controller] ❌ Error al actualizar evento de nota con ID {}: {}", id, e.getMessage(),
-                    e);
+            log.error("\n\n[Capa Controller] ❌ Error al actualizar evento de nota con ID {}: {}", id, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }

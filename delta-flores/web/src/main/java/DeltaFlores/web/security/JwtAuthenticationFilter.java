@@ -82,10 +82,9 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         // Create HttpOnly cookie
         Cookie jwtCookie = new Cookie("jwt", token);
         jwtCookie.setHttpOnly(true);
-        jwtCookie.setSecure(true); // Should be true in production
+        jwtCookie.setSecure(false); // ✅ FIXED: False para localhost (HTTP). En prod debe ser true.
         jwtCookie.setPath("/");
         jwtCookie.setMaxAge(24 * 60 * 60); // 1 day
-        jwtCookie.setAttribute("SameSite", "Strict"); // ✅ CSRF Protection
         response.addCookie(jwtCookie);
 
         log.info("\n\n✅ Login exitoso para el usuario: {}", user.getUsername() + "\n\n");

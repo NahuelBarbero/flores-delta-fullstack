@@ -29,8 +29,7 @@ public final class DtoMapper {
         return userDto;
     }
 
-    public static UserDto UserToRegisterDtoToUserDto(UserDto userDto, UserToRegisterDto userToRegisterDto)
-            throws BadRequestException {
+    public static UserDto UserToRegisterDtoToUserDto(UserDto userDto, UserToRegisterDto userToRegisterDto) throws BadRequestException {
         userDto.setId(userToRegisterDto.getId());
         userDto.setUsername(userToRegisterDto.getEmail());
         userDto.setNombre(userToRegisterDto.getNombre());
@@ -70,8 +69,6 @@ public final class DtoMapper {
         salaDto.setHorasLuz(sala.getHorasLuz());
         salaDto.setHumedad(sala.getHumedad());
         salaDto.setTemperaturaAmbiente(sala.getTemperaturaAmbiente());
-        salaDto.setTipoAmbiente(sala.getTipoAmbiente());
-        salaDto.setImagenUrl(sala.getImagenUrl());
         if (sala.getUser() != null) {
             salaDto.setUserId(sala.getUser().getId());
         }
@@ -98,10 +95,9 @@ public final class DtoMapper {
         sala.setHorasLuz(salaDto.getHorasLuz());
         sala.setHumedad(salaDto.getHumedad());
         sala.setTemperaturaAmbiente(salaDto.getTemperaturaAmbiente());
-        sala.setTipoAmbiente(salaDto.getTipoAmbiente());
-        sala.setImagenUrl(salaDto.getImagenUrl());
         return sala;
     }
+
 
     public static PlantaDto plantaToPlantaDto(Planta planta) {
         PlantaDto plantaDto = new PlantaDto();
@@ -117,19 +113,9 @@ public final class DtoMapper {
         plantaDto.setFechaCreacion(planta.getFechaCreacion());
         if (planta.getSala() != null) {
             plantaDto.setSalaId(planta.getSala().getId());
-            // Popular objeto completo para frontend
-            SalaDto salaDto = new SalaDto();
-            salaDto.setId(planta.getSala().getId());
-            salaDto.setNombre(planta.getSala().getNombre());
-            plantaDto.setSala(salaDto);
         }
         if (planta.getCepa() != null) {
             plantaDto.setCepaId(planta.getCepa().getId());
-            // Popular objeto completo para frontend
-            CepaDto cepaDto = new CepaDto();
-            cepaDto.setId(planta.getCepa().getId());
-            cepaDto.setGeneticaParental(planta.getCepa().getGeneticaParental());
-            plantaDto.setCepaDto(cepaDto);
         }
 
         if (planta.getEvents() != null && !planta.getEvents().isEmpty()) {
@@ -151,7 +137,7 @@ public final class DtoMapper {
         planta.setFechaCreacion(plantaDto.getFechaCreacion());
         planta.setUbicacion(plantaDto.getUbicacion());
         planta.setProduccion(plantaDto.getProduccion());
-
+        
         // Set the entities that were fetched by the service
         planta.setCepa(cepa);
         planta.setSala(sala);
@@ -218,7 +204,7 @@ public final class DtoMapper {
             nutriente = new Nutriente();
         }
         if (dto.getId() != null) {
-            nutriente.setId(dto.getId());
+             nutriente.setId(dto.getId());
         }
         nutriente.setTitulo(dto.getTitulo());
         nutriente.setDescripcion(dto.getDescripcion());
@@ -316,8 +302,8 @@ public final class DtoMapper {
         dto.setFecha(event.getFecha());
         if (event.getPlantas() != null && !event.getPlantas().isEmpty()) {
             dto.setPlantaIds(event.getPlantas().stream()
-                    .map(Planta::getId)
-                    .collect(Collectors.toList()));
+                                  .map(Planta::getId)
+                                  .collect(Collectors.toList()));
         }
     }
 
@@ -327,26 +313,19 @@ public final class DtoMapper {
 
     public static PlantEvent plantEventDtoToPlantEvent(PlantEventDto eventDto, PlantEvent event) {
         if (eventDto instanceof NoteEventDto) {
-            return noteEventDtoToNoteEvent((NoteEventDto) eventDto,
-                    (event instanceof NoteEvent) ? (NoteEvent) event : new NoteEvent());
+            return noteEventDtoToNoteEvent((NoteEventDto) eventDto, (event instanceof NoteEvent) ? (NoteEvent) event : new NoteEvent());
         } else if (eventDto instanceof WateringEventDto) {
-            return wateringEventDtoToWateringEvent((WateringEventDto) eventDto,
-                    (event instanceof WateringEvent) ? (WateringEvent) event : new WateringEvent());
+            return wateringEventDtoToWateringEvent((WateringEventDto) eventDto, (event instanceof WateringEvent) ? (WateringEvent) event : new WateringEvent());
         } else if (eventDto instanceof PruningEventDto) {
-            return pruningEventDtoToPruningEvent((PruningEventDto) eventDto,
-                    (event instanceof PruningEvent) ? (PruningEvent) event : new PruningEvent());
+            return pruningEventDtoToPruningEvent((PruningEventDto) eventDto, (event instanceof PruningEvent) ? (PruningEvent) event : new PruningEvent());
         } else if (eventDto instanceof DefoliationEventDto) {
-            return defoliationEventDtoToDefoliationEvent((DefoliationEventDto) eventDto,
-                    (event instanceof DefoliationEvent) ? (DefoliationEvent) event : new DefoliationEvent());
+            return defoliationEventDtoToDefoliationEvent((DefoliationEventDto) eventDto, (event instanceof DefoliationEvent) ? (DefoliationEvent) event : new DefoliationEvent());
         } else if (eventDto instanceof NutrientEventDto) {
-            return nutrientEventDtoToNutrientEvent((NutrientEventDto) eventDto,
-                    (event instanceof NutrientEvent) ? (NutrientEvent) event : new NutrientEvent());
+            return nutrientEventDtoToNutrientEvent((NutrientEventDto) eventDto, (event instanceof NutrientEvent) ? (NutrientEvent) event : new NutrientEvent());
         } else if (eventDto instanceof StageChangeEventDto) {
-            return stageChangeEventDtoToStageChangeEvent((StageChangeEventDto) eventDto,
-                    (event instanceof StageChangeEvent) ? (StageChangeEvent) event : new StageChangeEvent());
+            return stageChangeEventDtoToStageChangeEvent((StageChangeEventDto) eventDto, (event instanceof StageChangeEvent) ? (StageChangeEvent) event : new StageChangeEvent());
         } else if (eventDto instanceof MeasurementEventDto) {
-            return measurementEventDtoToMeasurementEvent((MeasurementEventDto) eventDto,
-                    (event instanceof MeasurementEvent) ? (MeasurementEvent) event : new MeasurementEvent());
+            return measurementEventDtoToMeasurementEvent((MeasurementEventDto) eventDto, (event instanceof MeasurementEvent) ? (MeasurementEvent) event : new MeasurementEvent());
         }
         throw new IllegalArgumentException("Unknown event DTO type: " + eventDto.getClass().getName());
     }
@@ -354,8 +333,7 @@ public final class DtoMapper {
     private static NoteEvent noteEventDtoToNoteEvent(NoteEventDto dto, NoteEvent event) {
         copyCommonEventPropertiesToEntity(dto, event);
         event.setText(dto.getText());
-        // The 'mediaUrls' are set by the service after storing the files from
-        // dto.getFiles()
+        // The 'mediaUrls' are set by the service after storing the files from dto.getFiles()
         return event;
     }
 
@@ -373,8 +351,7 @@ public final class DtoMapper {
         return event;
     }
 
-    private static DefoliationEvent defoliationEventDtoToDefoliationEvent(DefoliationEventDto dto,
-            DefoliationEvent event) {
+    private static DefoliationEvent defoliationEventDtoToDefoliationEvent(DefoliationEventDto dto, DefoliationEvent event) {
         copyCommonEventPropertiesToEntity(dto, event);
         event.setGradoDefoliacion(dto.getGradoDefoliacion());
         return event;
@@ -386,15 +363,13 @@ public final class DtoMapper {
         return event;
     }
 
-    private static StageChangeEvent stageChangeEventDtoToStageChangeEvent(StageChangeEventDto dto,
-            StageChangeEvent event) {
+    private static StageChangeEvent stageChangeEventDtoToStageChangeEvent(StageChangeEventDto dto, StageChangeEvent event) {
         copyCommonEventPropertiesToEntity(dto, event);
         event.setNuevaEtapa(dto.getNuevaEtapa());
         return event;
     }
 
-    private static MeasurementEvent measurementEventDtoToMeasurementEvent(MeasurementEventDto dto,
-            MeasurementEvent event) {
+    private static MeasurementEvent measurementEventDtoToMeasurementEvent(MeasurementEventDto dto, MeasurementEvent event) {
         copyCommonEventPropertiesToEntity(dto, event);
         event.setHorasLuz(dto.getHorasLuz()); // Now String
         event.setHumedad(dto.getHumedad());

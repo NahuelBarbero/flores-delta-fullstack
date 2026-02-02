@@ -1,5 +1,6 @@
 package DeltaFlores.web.controller;
 
+
 import DeltaFlores.web.dto.UpdateUserRoleRequestDto;
 import DeltaFlores.web.dto.UserDto;
 import DeltaFlores.web.dto.UserToRegisterDto;
@@ -23,51 +24,18 @@ public class UserController {
 
     private final UserService userService;
 
-    @GetMapping("/check-pass")
-    public ResponseEntity<String> checkPass(@RequestParam String raw) {
-        try {
-            org.springframework.security.core.userdetails.UserDetails user = userService.loadUserByUsername("admin@delta.com");
-            boolean match = new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder().matches(raw, user.getPassword());
-            return ResponseEntity.ok("User: " + user.getUsername() + ", Match: " + match + ", Enabled: " + user.isEnabled());
-        } catch (Exception e) {
-            return ResponseEntity.ok("Error: " + e.getMessage());
-        }
-    }
-
-    @GetMapping("/seed-admin")
-    public ResponseEntity<String> seedAdmin() {
-        try {
-            UserToRegisterDto dto = new UserToRegisterDto();
-            dto.setNombre("Admin");
-            dto.setApellido("Seeded");
-            dto.setEmail("admin@delta.com");
-            dto.setPassword("admin123");
-            userService.registerUser(dto);
-            return ResponseEntity.ok("Admin seeded successfully");
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(500).body("Error seeding: " + e.getMessage());
-        }
-    }
-
     @PostMapping("/register")
     public ResponseEntity<UserDto> registerUser(@RequestBody @Valid UserToRegisterDto userToRegisterDto) {
-        log.info("\n\n[Capa Controller] \uD83D\uDCBE Solicitud de registro para nuevo usuario: {}",
-                userToRegisterDto.getEmail());
+        log.info("\n\n[Capa Controller] \uD83D\uDCBE Solicitud de registro para nuevo usuario: {}", userToRegisterDto.getEmail());
         try {
             UserDto createdUser = userService.registerUser(userToRegisterDto);
-            log.info("\n\n[Capa Controller] \u2705 Usuario {} registrado con éxito con ID: {}",
-                    createdUser.getUsername(), createdUser.getId());
+            log.info("\n\n[Capa Controller] \u2705 Usuario {} registrado con éxito con ID: {}", createdUser.getUsername(), createdUser.getId());
             return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
         } catch (IllegalStateException e) {
-            log.warn("\n\n[Capa Controller] \u26A0\uFE0F Error al registrar usuario {}: {}",
-                    userToRegisterDto.getEmail(), e.getMessage());
+            log.warn("\n\n[Capa Controller] \u26A0\uFE0F Error al registrar usuario {}: {}", userToRegisterDto.getEmail(), e.getMessage());
             return ResponseEntity.status(HttpStatus.CONFLICT).build(); // 409 Conflict for duplicate user
         } catch (Exception e) {
-            System.out.println("CRITICAL ERROR IN REGISTER:");
-            e.printStackTrace();
-            log.error("\n\n[Capa Controller] \u274C Error inesperado al registrar usuario {}: {}",
-                    userToRegisterDto.getEmail(), e.getMessage(), e);
+            log.error("\n\n[Capa Controller] \u274C Error inesperado al registrar usuario {}: {}", userToRegisterDto.getEmail(), e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -81,8 +49,7 @@ public class UserController {
             log.info("\n\n[Capa Controller] \u2705 {} usuarios obtenidos con éxito.", users.size());
             return ResponseEntity.ok(users);
         } catch (Exception e) {
-            log.error("\n\n[Capa Controller] \u274C Error inesperado al obtener todos los usuarios: {}", e.getMessage(),
-                    e);
+            log.error("\n\n[Capa Controller] \u274C Error inesperado al obtener todos los usuarios: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -113,8 +80,7 @@ public class UserController {
             log.info("\n\n[Capa Controller] \u2705 {} usuarios obtenidos por nombre '{}'.", users.size(), nombre);
             return ResponseEntity.ok(users);
         } catch (Exception e) {
-            log.error("\n\n[Capa Controller] \u274C Error al obtener usuarios por nombre '{}': {}", nombre,
-                    e.getMessage(), e);
+            log.error("\n\n[Capa Controller] \u274C Error al obtener usuarios por nombre '{}': {}", nombre, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -138,20 +104,17 @@ public class UserController {
 
     @PatchMapping("/{id}/role")
     @PreAuthorize("hasRole('SUPER_ADMIN')")
-    public ResponseEntity<UserDto> updateUserRole(@PathVariable Long id,
-            @RequestBody @Valid UpdateUserRoleRequestDto roleRequest) {
+    public ResponseEntity<UserDto> updateUserRole(@PathVariable Long id, @RequestBody @Valid UpdateUserRoleRequestDto roleRequest) {
         log.info("\n\n[Capa Controller] \uD83D\uDD11 Solicitud para cambiar rol del usuario con ID: {}", id);
         try {
             UserDto updatedUser = userService.updateUserRole(id, roleRequest.getRole());
-            log.info("\n\n[Capa Controller] \u2705 Rol del usuario con ID: {} actualizado con éxito a {}.", id,
-                    roleRequest.getRole());
+            log.info("\n\n[Capa Controller] \u2705 Rol del usuario con ID: {} actualizado con éxito a {}.", id, roleRequest.getRole());
             return ResponseEntity.ok(updatedUser);
         } catch (ResourceNotFoundException e) {
             log.warn("\n\n[Capa Controller] \u26A0\uFE0F Usuario con ID: {} no encontrado para cambiar rol.", id);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         } catch (Exception e) {
-            log.error("\n\n[Capa Controller] \u274C Error al cambiar rol para usuario con ID {}: {}", id,
-                    e.getMessage(), e);
+            log.error("\n\n[Capa Controller] \u274C Error al cambiar rol para usuario con ID {}: {}", id, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }

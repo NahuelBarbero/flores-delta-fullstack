@@ -1,6 +1,5 @@
 package DeltaFlores.web.dto;
 
-import DeltaFlores.web.entities.TipoAmbiente;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -18,11 +17,7 @@ public class SalaDto implements Serializable {
     private Double humedad;
     private Double temperaturaAmbiente;
 
-    // Nuevo: Tipo de ambiente (INTERIOR o EXTERIOR)
-    private TipoAmbiente tipoAmbiente;
-
-    // Nuevo: URL de imagen personalizada para la sala
-    private String imagenUrl;
-
     private Set<Long> plantaIds = new HashSet<>();
+
+
 }

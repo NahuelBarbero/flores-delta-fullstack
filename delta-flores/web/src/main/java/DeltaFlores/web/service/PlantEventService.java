@@ -26,6 +26,8 @@ public class PlantEventService {
     private final PlantaRepository plantaRepository;
     private final MinioFileStorageService fileStorageService; // Keep this injected for future use or other methods
 
+
+
     @Transactional(readOnly = true)
     public List<PlantEventDto> getAllEventsForPlanta(Long plantaId) {
         log.info("\n\n\uD83D\uDD0E Obteniendo todos los eventos para la planta ID: {}", plantaId);
@@ -34,17 +36,6 @@ public class PlantEventService {
         }
         List<PlantEvent> events = plantEventRepository.findByPlantasIdOrderByFechaAsc(plantaId);
         log.info("\n\n\u2728 {} eventos encontrados para la planta ID: {}.", events.size(), plantaId);
-        return events.stream()
-                .map(DtoMapper::plantEventToPlantEventDto)
-                .collect(Collectors.toList());
-    }
-
-    public List<PlantEventDto> getAllEventsForCurrentUser() {
-        String username = org.springframework.security.core.context.SecurityContextHolder.getContext()
-                .getAuthentication().getName();
-        log.info("\n\n\uD83D\uDD0E Obteniendo todos los eventos para el usuario: {}", username);
-        List<PlantEvent> events = plantEventRepository.findAllByPlantasUsuarioUsernameOrderByFechaDesc(username);
-        log.info("\n\n\u2728 {} eventos encontrados para el usuario {}.", events.size(), username);
         return events.stream()
                 .map(DtoMapper::plantEventToPlantEventDto)
                 .collect(Collectors.toList());
