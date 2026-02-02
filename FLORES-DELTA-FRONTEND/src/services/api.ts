@@ -178,7 +178,21 @@ export const apiService = {
       throw new Error("Invalid server response for users");
     }
 
-    return parsed.data;
+    return parsed.data;  // ✅ FIX: Return statement agregado
+  },
+
+  updateUserRole: async (id: number, role: string): Promise<UserDto> => {
+    const response = await api.patch(`/api/users/${id}/role`, { role });
+    // Verificación básica del DTO retornado
+    const parsed = UserDtoSchema.safeParse(response.data);
+    if (!parsed.success) {
+      console.warn("⚠️ Backend retornó UserDto incompleto tras cambiar rol:", parsed.error.issues);
+    }
+    return response.data;
+  },
+
+  deleteUser: async (id: number): Promise<void> => {
+    await api.delete(`/api/users/${id}`);
   },
 
   // --- EVENTOS ---
@@ -228,14 +242,58 @@ export const apiService = {
   },
 
   getAllEventsForCurrentUser: async (filters: any = {}): Promise<BackendEvent[]> => {
-    const queryParams = new URLSearchParams();
-    if (filters.type && filters.type !== 'Todos') queryParams.append('eventType', filters.type);
-    if (filters.sala && filters.sala !== 'Todas') queryParams.append('salaId', filters.sala);
-    if (filters.plantId && filters.plantId !== 'Todas') queryParams.append('plantId', filters.plantId);
-    if (filters.dateRange?.from) queryParams.append('startDate', filters.dateRange.from.toISOString().split('T')[0]);
-    if (filters.dateRange?.to) queryParams.append('endDate', filters.dateRange.to.toISOString().split('T')[0]);
+    // El endpoint /api/log/events NO existe en el backend.
+    // Solución: llamar a los 5 endpoints individuales y combinar resultados.
+    try {
+      const [watering, nutrient, pruning, note, stageChange] = await Promise.all([
+        api.get('/api/events/watering').catch(() => ({ data: [] })),
+        api.get('/api/events/nutrient').catch(() => ({ data: [] })),
+        api.get('/api/events/pruning').catch(() => ({ data: [] })),
+        api.get('/api/events/note').catch(() => ({ data: [] })),
+        api.get('/api/events/stage-change').catch(() => ({ data: [] })),
+      ]);
 
-    const response = await api.get(`/api/log/events`, { params: queryParams });
+      // Combinar todos los eventos
+      let allEvents: BackendEvent[] = [
+        ...watering.data,
+        ...nutrient.data,
+        ...pruning.data,
+        ...note.data,
+        ...stageChange.data,
+      ];
+
+      // Aplicar filtros del cliente
+      if (filters.type && filters.type !== 'Todos') {
+        allEvents = allEvents.filter((e: BackendEvent) => e.eventType === filters.type);
+      }
+      if (filters.plantId && filters.plantId !== 'Todas') {
+        const targetId = Number(filters.plantId);
+        allEvents = allEvents.filter((e: BackendEvent) => e.plantaIds?.includes(targetId));
+      }
+      if (filters.dateRange?.from) {
+        const fromDate = new Date(filters.dateRange.from);
+        allEvents = allEvents.filter((e: BackendEvent) => new Date(e.fecha) >= fromDate);
+      }
+      if (filters.dateRange?.to) {
+        const toDate = new Date(filters.dateRange.to);
+        allEvents = allEvents.filter((e: BackendEvent) => new Date(e.fecha) <= toDate);
+      }
+
+      // Ordenar por fecha descendente
+      allEvents.sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
+
+
+      return allEvents;
+    } catch (error) {
+      console.error('Error fetching all events:', error);
+      return [];
+    }
+  },
+
+
+  // --- LOGS DEL SISTEMA ---
+  getSystemLogs: async (lines: number = 500): Promise<string[]> => {
+    const response = await api.get(`/api/logs?lines=${lines}`);
     return response.data;
   },
 

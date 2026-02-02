@@ -1,9 +1,8 @@
 import axios from 'axios';
 import { authService } from '../services/authService';
 
-// Base URL configuration
-// Base URL configuration
-const urlBase = import.meta.env.VITE_API_URL || 'http://localhost:8080/';
+// Base URL configuration - Empty to use Vite proxy (routes /api and /login to backend)
+const urlBase = import.meta.env.VITE_API_URL || '';
 
 // Initial config object (similar to mold)
 const config = {

@@ -4,8 +4,12 @@ import { useAuthContext } from "@/Context/AuthContext";
 import { MobileBottomNav } from "@/Components/navigation/MobileBottomNav";
 import { SplashScreen } from "@/Components/SplashScreen";
 
-export default function ProtectedRoute() {
-  const { isAuthenticated } = useAuthContext();
+interface ProtectedRouteProps {
+  allowedRoles?: string[];
+}
+
+export default function ProtectedRoute({ allowedRoles }: ProtectedRouteProps) {
+  const { isAuthenticated, user } = useAuthContext();
 
   // Show splash once per session after login
   const [showSplash, setShowSplash] = useState(() => {
@@ -21,6 +25,11 @@ export default function ProtectedRoute() {
   // If the user is not authenticated, redirect to login
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
+  }
+
+  // NEW: Role-based access control
+  if (allowedRoles && user?.role && !allowedRoles.includes(user.role)) {
+    return <Navigate to="/" replace />; // Redirect to dashboard if role not allowed
   }
 
   // Show splash screen after login (once per session)

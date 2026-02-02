@@ -19,7 +19,7 @@ const menuItems = [
   { id: 'plantas', label: 'Plantas', icon: Leaf, path: '/plantas' },
   { id: 'favoritos', label: 'Favoritos', icon: Heart, path: '/favoritos' },
   { id: 'bitacoras', label: 'Bitácoras', icon: BookOpen, path: '/bitacora-maestra' },
-  { id: 'panel', label: 'Panel de Control', icon: Settings, path: '/configuracion' },
+  { id: 'panel', label: 'Panel de Control', icon: Settings, path: '/panel-de-control' },
 ];
 
 export function AppSidebar() {

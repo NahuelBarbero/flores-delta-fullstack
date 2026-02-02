@@ -6,6 +6,7 @@ import { SalasManager } from "@/Components/panel/SalasManager";
 import { GeneticasManager } from "@/Components/panel/GeneticasManager";
 import { NutrientesManager } from "@/Components/panel/NutrientesManager";
 import { UsuariosManager } from "@/Components/panel/UsuariosManager";
+import { SystemLogsViewer } from "@/Components/panel/SystemLogsViewer"; // ✅ Importado
 import { KpiCard } from "@/Components/dashboard/KpiCard";
 import { WeeklyActivityChart } from "@/Components/dashboard/WeeklyActivityChart";
 import { Sprout, MapPin, Droplets, Flower2, Users, FlaskConical, Leaf, Calendar, TrendingUp, Activity } from "lucide-react";
@@ -27,7 +28,8 @@ export default function PanelControl({ defaultTab = "general" }: PanelControlPro
     const [searchParams] = useSearchParams();
     const tabFromUrl = searchParams.get('tab') || defaultTab;
     const { user } = useAuthContext();
-    const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';
+    const isSuperAdmin = ['SUPER_ADMIN', 'ROLE_SUPER_ADMIN'].includes(user?.role);
+    const isAdmin = ['ADMIN', 'ROLE_ADMIN', 'SUPER_ADMIN', 'ROLE_SUPER_ADMIN'].includes(user?.role);
 
     // Fetch data for KPIs
     const { data: plantas = [] } = useQuery({
@@ -90,10 +92,15 @@ export default function PanelControl({ defaultTab = "general" }: PanelControlPro
                                 <TabsTrigger value="nutrientes" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">
                                     <Droplets className="w-4 h-4 mr-2" /> Riegos
                                 </TabsTrigger>
-                                {isAdmin && (
-                                    <TabsTrigger value="usuarios" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">
-                                        <Users className="w-4 h-4 mr-2" /> Usuarios
-                                    </TabsTrigger>
+                                {isSuperAdmin && (
+                                    <>
+                                        <TabsTrigger value="usuarios" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                                            <Users className="w-4 h-4 mr-2" /> Usuarios
+                                        </TabsTrigger>
+                                        <TabsTrigger value="system" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                                            <Activity className="w-4 h-4 mr-2" /> Sistema
+                                        </TabsTrigger>
+                                    </>
                                 )}
                             </TabsList>
 
@@ -213,7 +220,7 @@ export default function PanelControl({ defaultTab = "general" }: PanelControlPro
                                 </Card>
                             </TabsContent>
 
-                            {isAdmin && (
+                            {isSuperAdmin && (
                                 <TabsContent value="usuarios">
                                     <Card className="bg-card/30 backdrop-blur-sm border-2 border-primary/50">
                                         <CardHeader>
@@ -224,6 +231,12 @@ export default function PanelControl({ defaultTab = "general" }: PanelControlPro
                                             <UsuariosManager />
                                         </CardContent>
                                     </Card>
+                                </TabsContent>
+                            )}
+
+                            {isSuperAdmin && (
+                                <TabsContent value="system">
+                                    <SystemLogsViewer />
                                 </TabsContent>
                             )}
                         </Tabs>

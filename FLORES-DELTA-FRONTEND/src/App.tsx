@@ -40,13 +40,15 @@ const App = () => {
             <Route path="/plantas/:id/editar" element={<EditPlantPage />} />
             <Route path="/sala/:salaId" element={<SalaDetailPage />} />
             <Route path="/bitacora-maestra" element={<MainLogPage />} />
-            <Route path="/configuracion" element={<PanelControl />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/favoritos" element={<FavoritosPage />} />
 
-            {/* Restored Routes for Sidebar Links using PanelControl tabs */}
-            <Route path="/geneticas" element={<PanelControl defaultTab="geneticas" />} />
-            <Route path="/riegos" element={<PanelControl defaultTab="nutrientes" />} />
+            {/* ADMIN ROUTES - Protected by role */}
+            <Route element={<ProtectedRoute allowedRoles={['ROLE_ADMIN', 'ROLE_SUPER_ADMIN']} />}>
+              <Route path="/panel-de-control" element={<PanelControl />} />
+              <Route path="/geneticas" element={<PanelControl defaultTab="geneticas" />} />
+              <Route path="/riegos" element={<PanelControl defaultTab="nutrientes" />} />
+            </Route>
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
