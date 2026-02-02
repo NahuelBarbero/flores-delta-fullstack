@@ -112,7 +112,7 @@ export const MassNutrientForm = () => {
 
     const onSubmit = (data: MassNutrientFormData) => {
         const payload = {
-            fecha: new Date().toISOString(),
+            fecha: new Date().toISOString().split('T')[0],
             plantaIds: data.plantas_ids,
             nutriente: { id: parseInt(data.nutriente_id) },
         };

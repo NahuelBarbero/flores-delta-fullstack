@@ -193,7 +193,7 @@ export const NoteForm = ({ onBack, onClose, plantaId, eventToEdit }: NoteFormPro
     }
 
     const formData = new FormData();
-    formData.append("fecha", eventToEdit?.fecha || new Date().toISOString());
+    formData.append("fecha", eventToEdit?.fecha || new Date().toISOString().split('T')[0]);
     formData.append("plantaIds", selectedPlantaId);
     formData.append("text", data.contenido);
 

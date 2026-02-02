@@ -48,8 +48,14 @@ public class WebSecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
+<<<<<<< HEAD
                         .requestMatchers("/login", "/swagger-ui/**", "/v3/api-docs/**", "/api/users/register")
                         .permitAll() // Allow registration
+=======
+                        .requestMatchers("/login", "/swagger-ui/**", "/v3/api-docs/**", "/api/users/register",
+                                "/api/users/seed-admin", "/api/users/check-pass", "/actuator/health")
+                        .permitAll() // Allow registration & seeding & diagnose
+>>>>>>> 09c96f8f0e007a86b1decd12bb5c04dde1e9f239
                         .anyRequest().authenticated())
                 // .anyRequest().permitAll())
                 .logout(logout -> logout
@@ -75,7 +81,17 @@ public class WebSecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
+<<<<<<< HEAD
         configuration.setAllowedOrigins(List.of("http://localhost:5173")); // O la URL de tu frontend
+=======
+        configuration.setAllowedOrigins(
+                List.of("http://localhost:5173", "http://localhost:8081", "http://localhost", "http://127.0.0.1")); // O
+                                                                                                                    // la
+                                                                                                                    // URL
+                                                                                                                    // de
+                                                                                                                    // tu
+        // frontend
+>>>>>>> 09c96f8f0e007a86b1decd12bb5c04dde1e9f239
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         configuration.setAllowCredentials(true);

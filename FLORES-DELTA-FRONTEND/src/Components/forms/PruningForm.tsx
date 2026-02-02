@@ -139,7 +139,7 @@ export const PruningForm = ({ onBack, onClose, plantaId, eventToEdit }: PruningF
     }
 
     const payload = {
-      fecha: eventToEdit?.fecha || new Date().toISOString(),
+      fecha: eventToEdit?.fecha || new Date().toISOString().split('T')[0],
       plantaIds: [parseInt(selectedPlantaId)],
       tipoPoda: data.tipo_poda,
     };

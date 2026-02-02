@@ -282,6 +282,7 @@ public final class DtoMapper {
         copyCommonEventPropertiesToDto(event, dto);
         dto.setEventType("STAGE_CHANGE");
         dto.setNuevaEtapa(event.getNuevaEtapa());
+        dto.setEtapaAnterior(event.getEtapaAnterior());
         return dto;
     }
 

@@ -7,7 +7,7 @@ WORKDIR /app
 
 # Copiar pom.xml primero (cache de dependencias)
 COPY web/pom.xml ./web/
-COPY pom.xml .
+#
 
 # Descargar dependencias (cacheado si pom no cambia)
 RUN mvn -f web/pom.xml dependency:go-offline
@@ -27,6 +27,10 @@ WORKDIR /app
 
 # Crear usuario no-root para seguridad
 RUN addgroup -S spring && adduser -S spring -G spring
+
+# Crear directorio de logs y asignar permisos
+RUN mkdir -p /app/logs && chown -R spring:spring /app
+
 USER spring:spring
 
 # Copiar JAR desde builder
@@ -42,6 +46,6 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
 # Ejecutar aplicación
 # -Djava.security.egd para prevenir bloqueos en /dev/random
 ENTRYPOINT ["java", \
-    "-Djava.security.egd=file:/dev/./urandom", \
-    "-jar", \
-    "app.jar"]
+  "-Djava.security.egd=file:/dev/./urandom", \
+  "-jar", \
+  "app.jar"]

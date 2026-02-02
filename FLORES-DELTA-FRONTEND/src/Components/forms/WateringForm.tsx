@@ -140,7 +140,7 @@ export const WateringForm = ({ onBack, onClose, plantaId, eventToEdit }: Waterin
     }
 
     const payload = {
-      fecha: eventToEdit?.fecha || new Date().toISOString(),
+      fecha: eventToEdit?.fecha || new Date().toISOString().split('T')[0],
       plantaIds: [parseInt(selectedPlantaId)],
       phAgua: data.ph_agua ? parseFloat(data.ph_agua) : 0.0,
       ecAgua: data.ec_agua ? parseFloat(data.ec_agua) : 0.0,

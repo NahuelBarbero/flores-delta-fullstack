@@ -10,7 +10,7 @@ build/
 *.md
 Dockerfile
 .dockerignore
-nginx.conf
+
 
 # Testing
 coverage/
