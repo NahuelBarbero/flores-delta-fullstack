@@ -52,15 +52,18 @@ public class PlantaService {
         User currentUser = getCurrentUser();
 
         boolean isAdmin = authentication.getAuthorities().stream()
-                .anyMatch(role -> role.getAuthority().equals("ROLE_ADMIN") || role.getAuthority().equals("ROLE_SUPER_ADMIN"));
+                .anyMatch(role -> role.getAuthority().equals("ROLE_ADMIN")
+                        || role.getAuthority().equals("ROLE_SUPER_ADMIN"));
 
         if (isAdmin) {
-            log.info("Acceso de administrador concedido para el usuario '{}' a la planta con ID: {}", currentUser.getUsername(), planta.getId());
+            log.info("Acceso de administrador concedido para el usuario '{}' a la planta con ID: {}",
+                    currentUser.getUsername(), planta.getId());
             return; // Skip ownership check
         }
 
         if (!planta.getUser().getId().equals(currentUser.getId())) {
-            log.warn("ACCESO DENEGADO: El usuario '{}' (ID: {}) intentó acceder a la planta con ID: {}, que pertenece al usuario con ID: {}",
+            log.warn(
+                    "ACCESO DENEGADO: El usuario '{}' (ID: {}) intentó acceder a la planta con ID: {}, que pertenece al usuario con ID: {}",
                     currentUser.getUsername(), currentUser.getId(), planta.getId(), planta.getUser().getId());
             throw new AccessDeniedException("No tiene permiso para acceder a esta planta.");
         }
@@ -68,7 +71,8 @@ public class PlantaService {
 
     private boolean isAdmin(Authentication authentication) {
         return authentication.getAuthorities().stream()
-                .anyMatch(role -> role.getAuthority().equals("ROLE_ADMIN") || role.getAuthority().equals("ROLE_SUPER_ADMIN"));
+                .anyMatch(role -> role.getAuthority().equals("ROLE_ADMIN")
+                        || role.getAuthority().equals("ROLE_SUPER_ADMIN"));
     }
 
     // --- CRUD Methods ---
@@ -80,31 +84,36 @@ public class PlantaService {
 
         // Fetch Cepa and check authorization
         Cepa cepa = cepaRepository.findById(plantaDto.getCepaId())
-                .orElseThrow(() -> new ResourceNotFoundException("Cepa no encontrada con id: " + plantaDto.getCepaId()));
-        
+                .orElseThrow(
+                        () -> new ResourceNotFoundException("Cepa no encontrada con id: " + plantaDto.getCepaId()));
+
         boolean isOwner = cepa.getUser().getId().equals(currentUser.getId());
         boolean isAdmin = currentUser.getAuthorities().stream()
-                .anyMatch(role -> role.getAuthority().equals("ROLE_ADMIN") || role.getAuthority().equals("ROLE_SUPER_ADMIN"));
+                .anyMatch(role -> role.getAuthority().equals("ROLE_ADMIN")
+                        || role.getAuthority().equals("ROLE_SUPER_ADMIN"));
 
         if (!isOwner && !isAdmin) {
-            log.warn("ACCESO DENEGADO: El usuario '{}' intentó crear una planta usando la cepa con ID: {}, que no le pertenece.",
+            log.warn(
+                    "ACCESO DENEGADO: El usuario '{}' intentó crear una planta usando la cepa con ID: {}, que no le pertenece.",
                     currentUser.getUsername(), cepa.getId());
-            throw new AccessDeniedException("No tienes permiso para usar esta cepa. Solo los dueños o administradores pueden hacerlo.");
+            throw new AccessDeniedException(
+                    "No tienes permiso para usar esta cepa. Solo los dueños o administradores pueden hacerlo.");
         }
 
         // Fetch Sala and check ownership
         Sala sala = salaRepository.findById(plantaDto.getSalaId())
-                .orElseThrow(() -> new ResourceNotFoundException("Sala no encontrada con id: " + plantaDto.getSalaId()));
+                .orElseThrow(
+                        () -> new ResourceNotFoundException("Sala no encontrada con id: " + plantaDto.getSalaId()));
         if (!sala.getUser().getId().equals(currentUser.getId()) && !isAdmin(getAuthentication())) {
-             throw new AccessDeniedException("No tiene permiso para asignar una planta a esta sala.");
+            throw new AccessDeniedException("No tiene permiso para asignar una planta a esta sala.");
         }
-
 
         Planta planta = DtoMapper.plantaDtoToPlanta(new Planta(), plantaDto, cepa, sala);
         planta.setUser(currentUser); // Set owner
 
         Planta savedPlanta = plantaRepository.save(planta);
-        log.info("Planta {} creada con ID: {} para el usuario '{}'", savedPlanta.getNombre(), savedPlanta.getId(), currentUser.getUsername());
+        log.info("Planta {} creada con ID: {} para el usuario '{}'", savedPlanta.getNombre(), savedPlanta.getId(),
+                currentUser.getUsername());
         return DtoMapper.plantaToPlantaDto(savedPlanta);
     }
 
@@ -118,7 +127,8 @@ public class PlantaService {
             return plantaRepository.findAll().stream().map(DtoMapper::plantaToPlantaDto).collect(Collectors.toList());
         } else {
             log.info("Obteniendo todas las plantas para el usuario '{}'", currentUser.getUsername());
-            return plantaRepository.findByUserId(currentUser.getId()).stream().map(DtoMapper::plantaToPlantaDto).collect(Collectors.toList());
+            return plantaRepository.findByUserId(currentUser.getId()).stream().map(DtoMapper::plantaToPlantaDto)
+                    .collect(Collectors.toList());
         }
     }
 
@@ -151,28 +161,31 @@ public class PlantaService {
 
         // Fetch Cepa and check authorization
         Cepa cepa = cepaRepository.findById(plantaDto.getCepaId())
-                .orElseThrow(() -> new ResourceNotFoundException("Cepa no encontrada con id: " + plantaDto.getCepaId()));
-        
+                .orElseThrow(
+                        () -> new ResourceNotFoundException("Cepa no encontrada con id: " + plantaDto.getCepaId()));
+
         User currentUser = getCurrentUser();
         boolean isOwner = cepa.getUser().getId().equals(currentUser.getId());
         boolean isAdmin = isAdmin(getAuthentication());
 
         if (!isOwner && !isAdmin) {
-            log.warn("ACCESO DENEGADO: El usuario '{}' intentó actualizar una planta usando la cepa con ID: {}, que no le pertenece.",
+            log.warn(
+                    "ACCESO DENEGADO: El usuario '{}' intentó actualizar una planta usando la cepa con ID: {}, que no le pertenece.",
                     currentUser.getUsername(), cepa.getId());
             throw new AccessDeniedException("No tienes permiso para usar esta cepa.");
         }
 
         // Fetch Sala and check ownership
         Sala sala = salaRepository.findById(plantaDto.getSalaId())
-                .orElseThrow(() -> new ResourceNotFoundException("Sala no encontrada con id: " + plantaDto.getSalaId()));
+                .orElseThrow(
+                        () -> new ResourceNotFoundException("Sala no encontrada con id: " + plantaDto.getSalaId()));
         if (!sala.getUser().getId().equals(currentUser.getId()) && !isAdmin) {
-             throw new AccessDeniedException("No tiene permiso para asignar una planta a esta sala.");
+            throw new AccessDeniedException("No tiene permiso para asignar una planta a esta sala.");
         }
 
         // Use the mapper to update the entity
         Planta updatedPlanta = DtoMapper.plantaDtoToPlanta(existingPlanta, plantaDto, cepa, sala);
-        
+
         plantaRepository.save(updatedPlanta);
         log.info("Planta con ID: {} actualizada con éxito.", updatedPlanta.getId());
         return DtoMapper.plantaToPlantaDto(updatedPlanta);
@@ -188,17 +201,18 @@ public class PlantaService {
 
         if (isAdmin(authentication)) {
             log.info("Admin buscando todas las plantas por palabra clave: {}", palabraClave);
-            plantas = plantaRepository.findByNombre(palabraClave);
+            plantas = plantaRepository.findByNombreContainingIgnoreCase(palabraClave);
         } else {
-            log.info("Usuario '{}' buscando sus plantas por palabra clave: {}", currentUser.getUsername(), palabraClave);
+            log.info("Usuario '{}' buscando sus plantas por palabra clave: {}", currentUser.getUsername(),
+                    palabraClave);
             // This is not optimal. A custom query would be better.
             // For now, filter in memory.
             List<Planta> userPlantas = plantaRepository.findByUserId(currentUser.getId());
             plantas = userPlantas.stream()
-                .filter(p -> p.getNombre().toLowerCase().contains(palabraClave.toLowerCase()))
-                .collect(Collectors.toList());
+                    .filter(p -> p.getNombre().toLowerCase().contains(palabraClave.toLowerCase()))
+                    .collect(Collectors.toList());
         }
-        
+
         log.info("{} plantas encontradas por palabra clave '{}'.", plantas.size(), palabraClave);
         return plantas.stream().map(DtoMapper::plantaToPlantaDto).collect(Collectors.toList());
     }
@@ -208,54 +222,60 @@ public class PlantaService {
         log.info("Buscando plantas por ID de sala: {}", salaId);
         // First, check if the user has access to the sala
         salaService.getSalaById(salaId);
-        
-        // If the above check passes, the user is either the owner or an admin, so it's safe to list the plants.
+
+        // If the above check passes, the user is either the owner or an admin, so it's
+        // safe to list the plants.
         List<Planta> plantas = plantaRepository.findBySalaId(salaId);
-                
-                log.info("{} plantas encontradas para sala ID: {}.", plantas.size(), salaId);
-                return plantas.stream().map(DtoMapper::plantaToPlantaDto).collect(Collectors.toList());
-            }
-        
-                @Transactional
-                public PlantaDto transferPlanta(Long plantaId, Long newOwnerId) {
-                    log.info("Iniciando transferencia de la planta ID: {} al nuevo propietario ID: {}", plantaId, newOwnerId);
-                    
-                    Planta planta = plantaRepository.findById(plantaId)
-                        .orElseThrow(() -> new ResourceNotFoundException("Planta a transferir no encontrada con id: " + plantaId));
-            
-                    User newOwner = userRepository.findById(newOwnerId)
-                        .orElseThrow(() -> new ResourceNotFoundException("Usuario destinatario no encontrado con id: " + newOwnerId));
-                        
-                    log.warn("Transferencia de propiedad de la planta '{}' (ID: {}) del usuario '{}' (ID: {}) al usuario '{}' (ID: {})", 
-                        planta.getNombre(), planta.getId(), planta.getUser().getUsername(), planta.getUser().getId(), newOwner.getUsername(), newOwner.getId());
-            
-                    planta.setUser(newOwner);
-                    Planta transferredPlanta = plantaRepository.save(planta);
-                    
-                    return DtoMapper.plantaToPlantaDto(transferredPlanta);
-                }
-            
-                    @Transactional
-                    public PlantaDto togglePublicStatus(Long plantaId) {
-                        log.info("Cambiando estado de visibilidad para la planta ID: {}", plantaId);
-                        Planta planta = plantaRepository.findById(plantaId)
-                                .orElseThrow(() -> new ResourceNotFoundException("Planta no encontrada con id: " + plantaId));
-                
-                        // Only the owner or an admin can change the public status
-                        checkOwnership(planta);
-                
-                        planta.setPublic(!planta.isPublic());
-                        Planta updatedPlanta = plantaRepository.save(planta);
-                
-                        log.info("El estado de visibilidad para la planta ID: {} ha sido cambiado a: {}", plantaId, updatedPlanta.isPublic());
-                        return DtoMapper.plantaToPlantaDto(updatedPlanta);
-                    }
-                
-                    @Transactional(readOnly = true)
-                    public List<PlantaDto> getPlantasByUserId(Long userId) {
-                        log.info("Buscando todas las plantas para el usuario con ID: {}", userId);
-                        List<Planta> plantas = plantaRepository.findByUserId(userId);
-                        log.info("{} plantas encontradas para el usuario con ID: {}", plantas.size(), userId);
-                        return plantas.stream().map(DtoMapper::plantaToPlantaDto).collect(Collectors.toList());
-                    }
-                }            
+
+        log.info("{} plantas encontradas para sala ID: {}.", plantas.size(), salaId);
+        return plantas.stream().map(DtoMapper::plantaToPlantaDto).collect(Collectors.toList());
+    }
+
+    @Transactional
+    public PlantaDto transferPlanta(Long plantaId, Long newOwnerId) {
+        log.info("Iniciando transferencia de la planta ID: {} al nuevo propietario ID: {}", plantaId, newOwnerId);
+
+        Planta planta = plantaRepository.findById(plantaId)
+                .orElseThrow(
+                        () -> new ResourceNotFoundException("Planta a transferir no encontrada con id: " + plantaId));
+
+        User newOwner = userRepository.findById(newOwnerId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Usuario destinatario no encontrado con id: " + newOwnerId));
+
+        log.warn(
+                "Transferencia de propiedad de la planta '{}' (ID: {}) del usuario '{}' (ID: {}) al usuario '{}' (ID: {})",
+                planta.getNombre(), planta.getId(), planta.getUser().getUsername(), planta.getUser().getId(),
+                newOwner.getUsername(), newOwner.getId());
+
+        planta.setUser(newOwner);
+        Planta transferredPlanta = plantaRepository.save(planta);
+
+        return DtoMapper.plantaToPlantaDto(transferredPlanta);
+    }
+
+    @Transactional
+    public PlantaDto togglePublicStatus(Long plantaId) {
+        log.info("Cambiando estado de visibilidad para la planta ID: {}", plantaId);
+        Planta planta = plantaRepository.findById(plantaId)
+                .orElseThrow(() -> new ResourceNotFoundException("Planta no encontrada con id: " + plantaId));
+
+        // Only the owner or an admin can change the public status
+        checkOwnership(planta);
+
+        planta.setPublic(!planta.isPublic());
+        Planta updatedPlanta = plantaRepository.save(planta);
+
+        log.info("El estado de visibilidad para la planta ID: {} ha sido cambiado a: {}", plantaId,
+                updatedPlanta.isPublic());
+        return DtoMapper.plantaToPlantaDto(updatedPlanta);
+    }
+
+    @Transactional(readOnly = true)
+    public List<PlantaDto> getPlantasByUserId(Long userId) {
+        log.info("Buscando todas las plantas para el usuario con ID: {}", userId);
+        List<Planta> plantas = plantaRepository.findByUserId(userId);
+        log.info("{} plantas encontradas para el usuario con ID: {}", plantas.size(), userId);
+        return plantas.stream().map(DtoMapper::plantaToPlantaDto).collect(Collectors.toList());
+    }
+}

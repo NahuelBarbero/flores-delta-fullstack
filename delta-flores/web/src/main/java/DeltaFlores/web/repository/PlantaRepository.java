@@ -17,7 +17,7 @@ public interface PlantaRepository extends JpaRepository<Planta, Long> {
 
     List<Planta> findByUserId(Long userId);
 
-    List<Planta> findByNombre(String palabraClave);
+    List<Planta> findByNombreContainingIgnoreCase(String palabraClave);
 
     List<Planta> findBySalaId(Long salaId);
 }

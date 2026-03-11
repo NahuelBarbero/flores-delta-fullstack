@@ -10,9 +10,7 @@ import lombok.Setter;
 @DiscriminatorValue("STAGE_CHANGE")
 public class StageChangeEvent extends PlantEvent {
 
-    @Enumerated(EnumType.STRING)
-    private NuevaEtapa nuevaEtapa;
 
     @Enumerated(EnumType.STRING)
-    private NuevaEtapa etapaAnterior;
+    private NuevaEtapa nuevaEtapa;
 }

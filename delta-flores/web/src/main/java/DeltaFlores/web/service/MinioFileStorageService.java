@@ -12,7 +12,7 @@ import java.io.InputStream;
 import java.util.UUID;
 
 @Service
-@Profile({ "minio", "prod" })
+@Profile("minio")
 public class MinioFileStorageService implements FileStorageService {
 
     private final MinioClient minioClient;
@@ -40,7 +40,8 @@ public class MinioFileStorageService implements FileStorageService {
                             .object(objectName)
                             .stream(inputStream, file.getSize(), -1)
                             .contentType(file.getContentType())
-                            .build());
+                            .build()
+            );
 
             // Construct the URL. Assuming the endpoint is the public URL.
             // This might need adjustment if a different public URL is used.
@@ -59,7 +60,8 @@ public class MinioFileStorageService implements FileStorageService {
                     io.minio.RemoveObjectArgs.builder()
                             .bucket(bucketName)
                             .object(objectName)
-                            .build());
+                            .build()
+            );
         } catch (Exception e) {
             // Log the error but don't re-throw to avoid breaking a larger transaction
             // if, for example, the file was already deleted manually.
