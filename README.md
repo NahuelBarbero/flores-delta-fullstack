@@ -1,7 +1,7 @@
 # 🌱 Flores Delta - Cannabis Cultivation Management System
 
-> **Versión Actual:** Sprint G (UX Revolution) - Fase 1
-> **Estado:** 🟢 Estabilizado & En Expansión
+> **Versión Actual:** Auditoría de Eventos & Cleanup UX (Marzo 2026)
+> **Estado:** 🟡 Estabilizando Sincronización Frontend-Backend
 
 Flores Delta es un sistema integral para la gestión profesional de cultivos de cannabis, diseñado para potenciar la toma de decisiones basada en datos (Data-Driven Cultivation).
 
@@ -47,9 +47,10 @@ npm run dev
 ## 📚 Documentación Clave
 Para entender el estado actual del proyecto, revisa estos documentos en orden:
 
-1.  [📍 CHECKPOINT DE BALANCE (12 Feb)](CHECKPOINT_12_FEB.md) - **LEER PRIMERO**
-2.  [PLAN MAESTRO SPRINT G](docs/planning/PLAN_MAESTRO_SPRINT_G.md) - El futuro inmediato.
-3.  [Contexto Histórico](docs/context/CONTEXTO_SPRINT_D_E_F.md) - Cómo llegamos aquí.
+1.  [📍 STATUS UPDATE MARZO (Para Lautaro)](docs/STATUS_UPDATE_MARZO_2026.md) - **LEER PRIMERO (Sync Backend vs Frontend)**
+2.  [CHECKPOINT DE BALANCE (12 Feb)](CHECKPOINT_12_FEB.md) - Resumen general de la nueva UX.
+3.  [PLAN MAESTRO SPRINT G](docs/planning/PLAN_MAESTRO_SPRINT_G.md) - El futuro inmediato.
+4.  [Contexto Histórico](docs/context/CONTEXTO_SPRINT_D_E_F.md) - Cómo llegamos aquí.
 
 ## 🏗️ Arquitectura
 *   **Frontend:** React 18, TypeScript, Tailwind, Shadcn UI, TanStack Query.

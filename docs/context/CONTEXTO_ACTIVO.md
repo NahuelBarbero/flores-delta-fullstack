@@ -57,11 +57,10 @@
 - ✅ Creado workflow `/inicio-sesion` — llave de arranque automático
 - ✅ Actualizado `CONTEXTO_ACTIVO.md` como punto de entrada del sistema
 
-### Próxima sesión: Semana 1 — VERIFICAR + LIMPIAR
-**Usar:** `/inicio-sesion`
-**Objetivo:** Levantar la app y verificar V1-V7 (Login, CRUD, Toasts, etc.)
-**Después:** Quick wins DT1, DT4, DT5, UX2, UX3
-**Meta:** Cerrar 12 items en la primera semana de ejecución
+### Estado Actual: Auditoría del Sistema de Eventos (Mar 2026)
+**Objetivo:** Alinear al 100% el tipado y renderizado del frontend con el backend real de Lautaro.
+**Plan Activo:** Plan de 11 pasos documentado en `../STATUS_UPDATE_MARZO_2026.md` y `C:\Users\gabyb\.gemini\antigravity\brain\53c8512c-9916-4e45-92b5-9cfef23d3355\implementation_plan.md`
+**Meta Inmediata:** Levantar la app, unificar `BackendEvent`, corregir `any` types en las cards de eventos, y auditar cada evento individual (Poda, Riego, etc.).
 
 ---
 
