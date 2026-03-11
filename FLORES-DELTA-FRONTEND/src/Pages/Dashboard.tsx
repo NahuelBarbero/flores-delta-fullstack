@@ -1,30 +1,19 @@
-import { Leaf, Calendar, TrendingUp, Activity, Plus, PlusCircle, Search, Filter, MapPin, Home } from "lucide-react";
+import { Plus, PlusCircle, MapPin, Home } from "lucide-react";
 import { SidebarProvider, SidebarTrigger } from "@/Components/ui/sidebar";
 import { AppSidebar } from "@/Components/dashboard/AppSidebar";
-import { KpiCard } from "@/Components/dashboard/KpiCard";
-import { PlantCard } from "@/Components/dashboard/PlantCard";
-import { DirectAccessMenu } from "@/Components/DirectAccessMenu";
 import { Button } from "@/Components/ui/button";
-import { Input } from "@/Components/ui/input";
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { ScrollArea } from "@/Components/ui/scroll-area";
+import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { apiService } from "@/services/api";
 import { PlantaDto, SalaDto, CepaDto } from "@/interfaces/Planta";
 import { useDirectAccessMenuStore } from "@/stores/useDirectAccessMenuStore";
 import { SalaCard } from "@/Components/dashboard/SalaCard";
-import { WeeklyActivityChart } from "@/Components/dashboard/WeeklyActivityChart";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/Components/ui/carousel";
-import { useDashboardLogic } from "@/hooks/useDashboardLogic";
 import { WeeklyCalendarStrip } from "@/Components/dashboard/WeeklyCalendarStrip";
 import { UserDiary } from "@/Components/dashboard/UserDiary";
 
-const ETAPAS_DISPONIBLES = ['Todas', 'PLANTIN', 'VEGETACION', 'FLORACION', 'COSECHADA'];
 export default function Dashboard() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterEtapa, setFilterEtapa] = useState('Todas');
-  const [filterSala, setFilterSala] = useState('Todas');
   const navigate = useNavigate();
 
   const { openMenuAndSelectTool, openMenu } = useDirectAccessMenuStore();
@@ -53,12 +42,7 @@ export default function Dashboard() {
     staleTime: 1000 * 60 * 5,
   });
 
-  // ✅ REFACTORIZADO: Lógica de negocio extraída a hook personalizado
-  const { availableRooms, filteredAndGroupedPlantas, kpis } = useDashboardLogic(plantas, {
-    searchQuery,
-    filterEtapa,
-    filterSala
-  }, allEvents);
+  // KPIs ahora viven en Panel de Control > Resumen Administrativo
 
   const handleCreateNew = (toolName: string) => {
     openMenuAndSelectTool(toolName);  // Abre menú CON tool preseleccionada
@@ -68,14 +52,14 @@ export default function Dashboard() {
     navigate(`/configuracion?tab=${tab}`);
   };
 
-  // Open DirectAccessMenu only on first visit (with delay for smooth UX)
+  // Open DirectAccessMenu only on first Dashboard visit per session
   useEffect(() => {
-    const hasVisitedDashboard = localStorage.getItem('floresdelta_dashboard_visited');
-    if (!hasVisitedDashboard) {
-      // First time visiting dashboard - delay to let content load first
+    const hasOpenedThisSession = sessionStorage.getItem('floresdelta_menu_opened');
+    if (!hasOpenedThisSession) {
+      // First time visiting dashboard this session - delay to let content load first
       const timer = setTimeout(() => {
         openMenu();
-        localStorage.setItem('floresdelta_dashboard_visited', 'true');
+        sessionStorage.setItem('floresdelta_menu_opened', 'true');
       }, 800);
       return () => clearTimeout(timer);
     }
@@ -139,11 +123,15 @@ export default function Dashboard() {
 
           <main className="p-4 sm:p-6 lg:p-8">
 
+
+            {/* KPIs movidos a Panel de Control > Resumen Administrativo */}
+
+
             {/* Weekly Calendar Strip - GWJ Style */}
             <div className="mb-6">
               <WeeklyCalendarStrip
                 events={allEvents}
-                onDaySelect={(date) => console.log('Selected:', date)}
+                onDaySelect={() => { }}
               />
             </div>
 

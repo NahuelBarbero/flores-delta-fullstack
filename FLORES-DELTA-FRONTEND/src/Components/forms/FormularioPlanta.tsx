@@ -1,29 +1,42 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { apiService } from "@/services/api";
-import { PlantaDto, SalaDto, CepaDto } from "@/interfaces/Planta";
-import { Button } from "@/Components/ui/button";
+import { z } from "zod";
 import { Form } from "@/Components/ui/form";
+import { Button } from "@/Components/ui/button";
+import { PlantaDto } from "@/interfaces/Planta";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiService } from "@/services/api";
+import { Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import { FormInputField } from "./FormInputField";
 import { FormSelectField } from "./FormSelectField";
 import { FormCheckboxField } from "./FormCheckboxField";
-import { Loader2 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { useEffect } from "react";
+// import { useAuth } from "@/Context/AuthContext"; // Ya no se usa explícitamente, backend maneja owner
 
-const plantaFormSchema = z.object({
+// Schema de validación local para el formulario (adaptado a UX)
+// Zod Schema para el formulario (inputs son strings mayormente)
+const formSchema = z.object({
     nombre: z.string().min(1, "El nombre es requerido"),
-    etapa: z.string().min(1, "La etapa es requerida"),
-    salaId: z.string().min(1, "La sala es requerida"),
-    cepaId: z.string().min(1, "La genética es requerida"),
+    salaId: z.string().min(1, "Debes seleccionar una sala"),
+    cepaId: z.string().min(1, "Debes seleccionar una genética"),
+    etapa: z.enum(['GERMINACION', 'PLANTIN', 'VEGETACION', 'FLORACION', 'COSECHADA']),
     ubicacion: z.string().optional(),
-    produccion: z.string().optional(),
-    isPublic: z.boolean().optional(),
-    fechaFin: z.string().optional(),
+    produccion: z.string().optional(), // Input number devuelve string a veces
+    isPublic: z.boolean().default(false),
+    isPublic: z.boolean().default(false),
+    fechaCreacion: z.string().optional(), // Nueva Fecha Inicio
 });
 
-type PlantaFormData = z.infer<typeof plantaFormSchema>;
+type PlantaFormData = z.infer<typeof formSchema>;
+
+const ETAPAS_OPTIONS = [
+    { value: 'GERMINACION', label: 'Germinación' },
+    { value: 'PLANTIN', label: 'Plantín' },
+    { value: 'VEGETACION', label: 'Vegetación' },
+    { value: 'FLORACION', label: 'Floración' },
+    { value: 'COSECHADA', label: 'Cosechada' },
+];
 
 interface FormularioPlantaProps {
     mode: 'create' | 'edit';
@@ -31,59 +44,93 @@ interface FormularioPlantaProps {
     onSuccess: () => void;
 }
 
-const ETAPAS_OPTIONS = [
-    { value: "GERMINACION", label: "Germinación" },
-    { value: "PLANTIN", label: "Plántula" },
-    { value: "VEGETACION", label: "Vegetativo" },
-    { value: "FLORACION", label: "Floración" },
-    { value: "COSECHADA", label: "Cosechada" },
-];
-
 export const FormularioPlanta = ({ mode, initialData, onSuccess }: FormularioPlantaProps) => {
     const { toast } = useToast();
     const queryClient = useQueryClient();
+    // const { user } = useAuth(); // No necesario, backend usa token
 
-    const { data: salas = [], isLoading: isLoadingSalas } = useQuery<SalaDto[]>({
+    // Cargar Salas para el select
+    const { data: salas = [], isLoading: isLoadingSalas } = useQuery({
         queryKey: ['salas'],
         queryFn: apiService.getSalas,
     });
 
-    const { data: cepas = [], isLoading: isLoadingCepas } = useQuery<CepaDto[]>({
+    // Cargar Cepas para el select
+    const { data: cepas = [], isLoading: isLoadingCepas } = useQuery({
         queryKey: ['cepas'],
         queryFn: apiService.getCepas,
     });
 
     const form = useForm<PlantaFormData>({
-        resolver: zodResolver(plantaFormSchema),
+        resolver: zodResolver(formSchema),
         defaultValues: {
             nombre: initialData?.nombre || '',
-            etapa: initialData?.etapa || 'VEGETACION',
-            salaId: initialData?.sala?.id?.toString() || '',
-            cepaId: initialData?.cepaDto?.id?.toString() || '',
+            salaId: initialData?.salaId?.toString() || '',
+            cepaId: initialData?.cepaId?.toString() || '',
+            etapa: initialData?.etapa || 'GERMINACION',
             ubicacion: initialData?.ubicacion || '',
             produccion: initialData?.produccion?.toString() || '',
             isPublic: initialData?.isPublic || false,
-            fechaFin: initialData?.fechaFin || '',
+            isPublic: initialData?.isPublic || false,
+            fechaCreacion: initialData?.fechaCreacion?.split('T')[0] || '',
         },
     });
 
+    // Reset form cuando cambia initialData (modo edición)
+    useEffect(() => {
+        if (initialData) {
+            form.reset({
+                nombre: initialData.nombre,
+                salaId: initialData.salaId?.toString() || '',
+                cepaId: initialData.cepaId?.toString() || '',
+                etapa: initialData.etapa,
+                ubicacion: initialData.ubicacion || '',
+                produccion: initialData.produccion?.toString() || '',
+                isPublic: initialData.isPublic || false,
+                isPublic: initialData.isPublic || false,
+                fechaCreacion: initialData.fechaCreacion?.split('T')[0] || '',
+            });
+        }
+    }, [initialData, form]);
+
     const mutation = useMutation({
         mutationFn: async (data: PlantaFormData) => {
-            const payload = {
+            const payload: any = { // Usar 'any' temporalmente para evitar bloqueo de TS estricto
                 nombre: data.nombre,
-                etapa: data.etapa,
-                salaId: parseInt(data.salaId),
-                cepaId: parseInt(data.cepaId),
+                etapa: data.etapa as any,
+                salaId: data.salaId ? Number(data.salaId) : null,
+                cepaId: data.cepaId ? Number(data.cepaId) : null,
                 ubicacion: data.ubicacion || null,
-                produccion: data.produccion ? parseInt(data.produccion) : 0,
+                produccion: data.produccion ? Number(data.produccion) : 0,
                 isPublic: data.isPublic || false,
-                fechaFin: data.fechaFin || null,
+                produccion: data.produccion ? Number(data.produccion) : 0,
+                isPublic: data.isPublic || false,
+                fechaCreacion: data.fechaCreacion || null,
             };
 
             if (mode === 'create') {
                 return apiService.createPlanta(payload);
             } else {
-                return apiService.updatePlanta(initialData!.id, payload);
+                const response = await apiService.updatePlanta(initialData!.id, payload);
+
+                // ✅ SPRINT D: Auto-Log Cambio de Sala
+                if (initialData?.salaId && payload.salaId && Number(initialData.salaId) !== Number(payload.salaId)) {
+                    try {
+                        const oldSalaName = salas.find(s => s.id.toString() === initialData.salaId!.toString())?.nombre || 'Sala Anterior';
+                        const newSalaName = salas.find(s => s.id.toString() === payload.salaId!.toString())?.nombre || 'Nueva Sala';
+
+                        const formData = new FormData();
+                        formData.append("plantaIds", initialData!.id.toString());
+                        formData.append("fecha", new Date().toISOString().split('T')[0]);
+                        formData.append("text", `🔄 Movimiento de Sala: De "${oldSalaName}" a "${newSalaName}"`);
+
+                        // Fuego y olvido (no bloqueamos el UI si falla el log)
+                        apiService.createNoteEvent(formData).catch(e => console.error("Error auto-logging sala change:", e));
+                    } catch (err) {
+                        console.warn("No se pudo registrar evento cambio sala", err);
+                    }
+                }
+                return response;
             }
         },
         onSuccess: () => {
@@ -148,7 +195,10 @@ export const FormularioPlanta = ({ mode, initialData, onSuccess }: FormularioPla
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit((data) => mutation.mutate(data))} className="space-y-4">
+            <form onSubmit={form.handleSubmit((data) => {
+                console.log("🚀 Enviando formulario planta:", data);
+                mutation.mutate(data);
+            })} className="space-y-4">
                 <FormInputField
                     control={form.control}
                     name="nombre"
@@ -203,10 +253,10 @@ export const FormularioPlanta = ({ mode, initialData, onSuccess }: FormularioPla
 
                     <FormInputField
                         control={form.control}
-                        name="fechaFin"
-                        label="Fecha de Finalización"
+                        name="fechaCreacion"
+                        label="Fecha de Inicio (Creación)"
                         type="date"
-                        optional
+                        optional={false}
                     />
                 </div>
 

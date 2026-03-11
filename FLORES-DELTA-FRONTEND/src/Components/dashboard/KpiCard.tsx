@@ -22,8 +22,9 @@ interface KpiCardProps {
   trendValue?: number;  // ✅ NUEVO: Porcentaje cambio (ej: +12%)
   description?: string;  // ✅ NUEVO: Tooltip explicativo
   chart?: React.ReactNode;  // ✅ NUEVO: Mini-chart opcional
-  type?: 'ranking';  // ✅ NUEVO: Señal para renderizado especial
-  data?: any[];  // ✅ NUEVO: Datos para ranking/tabla
+  type?: 'ranking';
+  data?: any[];
+  className?: string; // Permitir estilos externos
 }
 
 export const KpiCard = ({
@@ -39,7 +40,8 @@ export const KpiCard = ({
   description,
   chart,
   type,
-  data
+  data,
+  className
 }: KpiCardProps) => {
   /**
    * LÓGICA: Color dinámico basado en benchmark
@@ -62,7 +64,7 @@ export const KpiCard = ({
    */
   if (type === 'ranking' && data && data.length > 0) {
     return (
-      <Card className="bg-card p-6 rounded-xl shadow-lg border border-border hover:border-primary/50 transition-colors duration-300">
+      <Card className={`bg-card p-6 rounded-xl shadow-lg border border-border hover:border-primary/50 transition-colors duration-300 ${className || ''}`}>
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-muted-foreground">{title}</h3>
           <Icon className={color} size={24} />
@@ -105,7 +107,7 @@ export const KpiCard = ({
    * RENDERIZADO ESTÁNDAR: KPI Card normal
    */
   return (
-    <Card className="bg-card p-6 rounded-xl shadow-lg border border-border hover:border-primary/50 transition-colors duration-300 hover:shadow-primary/20">
+    <Card className={`bg-card p-6 rounded-xl shadow-lg border border-border hover:border-primary/50 transition-colors duration-300 hover:shadow-primary/20 ${className || ''}`}>
       {/* Header con título e ícono */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
@@ -148,8 +150,8 @@ export const KpiCard = ({
       {/* Trending indicator (si existe) */}
       {trend && (
         <div className={`flex items-center gap-1 text-sm font-medium mb-2 ${trend === 'up' ? 'text-green-500' :
-            trend === 'down' ? 'text-red-500' :
-              'text-gray-500'
+          trend === 'down' ? 'text-red-500' :
+            'text-gray-500'
           }`}>
           {trend === 'up' && <TrendingUp size={16} />}
           {trend === 'down' && <TrendingDown size={16} />}

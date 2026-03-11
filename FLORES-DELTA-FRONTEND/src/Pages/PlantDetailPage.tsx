@@ -43,6 +43,17 @@ export default function PlantDetailPage() {
     enabled: !!id,
   });
 
+  // ✅ SPRINT D: Fetch de listas maestras para Fallback de UI (Backend devuelve nulos)
+  const { data: salas = [] } = useQuery({
+    queryKey: ['salas'],
+    queryFn: apiService.getSalas,
+  });
+
+  const { data: cepas = [] } = useQuery({
+    queryKey: ['cepas'],
+    queryFn: apiService.getCepas,
+  });
+
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -60,6 +71,42 @@ export default function PlantDetailPage() {
     });
     return counts;
   }, [events]);
+
+  // ✅ SPRINT C - Fase 5: Función para calcular semana desde fechaCreacion de planta
+  const calcularSemana = (fechaEvento: string, fechaCreacionPlanta: string): number => {
+    const inicio = new Date(fechaCreacionPlanta);
+    const evento = new Date(fechaEvento);
+    const diffMs = evento.getTime() - inicio.getTime();
+    const diffDays = diffMs / (1000 * 60 * 60 * 24);
+    return Math.max(1, Math.floor(diffDays / 7) + 1);
+  };
+
+  // ✅ SPRINT C - Fase 5: Agrupar eventos filtrados por semana
+  const eventosAgrupados = useMemo(() => {
+    if (!planta?.fechaCreacion) return { 1: filteredEvents };
+
+    const grupos: Record<number, BackendEvent[]> = {};
+
+    filteredEvents.forEach(evento => {
+      const semana = calcularSemana(evento.fecha, planta.fechaCreacion);
+      if (!grupos[semana]) grupos[semana] = [];
+      grupos[semana].push(evento);
+    });
+
+    // Ordenar eventos dentro de cada semana por fecha descendente
+    Object.values(grupos).forEach(grupo => {
+      grupo.sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
+    });
+
+    return grupos;
+  }, [filteredEvents, planta?.fechaCreacion]);
+
+  // Obtener semanas ordenadas (de más reciente a más antigua)
+  const semanasOrdenadas = useMemo(() => {
+    return Object.keys(eventosAgrupados)
+      .map(Number)
+      .sort((a, b) => b - a);
+  }, [eventosAgrupados]);
 
   const deleteEventMutation = useMutation({
     mutationFn: ({ eventType, eventId }: { eventType: string; eventId: string }) =>
@@ -131,6 +178,8 @@ export default function PlantDetailPage() {
         {/* Perfil de Planta */}
         <PlantProfile
           planta={planta}
+          salas={salas}
+          cepas={cepas}
           onEdit={() => navigate(`/plantas/${id}/editar`)}
           onDelete={() => setIsDeletePlantOpen(true)}
         />
@@ -160,14 +209,35 @@ export default function PlantDetailPage() {
               </Button>
             </div>
           ) : (
-            <div className="space-y-3">
-              {filteredEvents.map((event) => (
-                <EventCard
-                  key={event.id}
-                  event={event}
-                  onEdit={() => handleEditEvent(event)}
-                  onDelete={() => handleDeleteEvent(event)}
-                />
+            // ✅ SPRINT C - Fase 5: Renderizado agrupado por semanas
+            <div className="space-y-6">
+              {semanasOrdenadas.map((semana) => (
+                <div key={semana} className="space-y-3">
+                  {/* Separador visual de semana */}
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 bg-primary/10 text-primary text-sm font-semibold px-3 py-1.5 rounded-full">
+                      <Calendar size={14} />
+                      Semana {semana}
+                    </div>
+                    <div className="h-px flex-1 bg-border" />
+                    <span className="text-xs text-muted-foreground">
+                      {eventosAgrupados[semana]?.length || 0} eventos
+                    </span>
+                  </div>
+
+                  {/* Eventos de esta semana */}
+                  <div className="space-y-3 pl-2 border-l-2 border-primary/20">
+                    {eventosAgrupados[semana]?.map((event) => (
+                      <EventCard
+                        key={event.id}
+                        event={event}
+                        plantCreationDate={planta?.fechaCreacion}
+                        onEdit={() => handleEditEvent(event)}
+                        onDelete={() => handleDeleteEvent(event)}
+                      />
+                    ))}
+                  </div>
+                </div>
               ))}
             </div>
           )}
@@ -189,6 +259,7 @@ export default function PlantDetailPage() {
             plantaId={id!}
             onClose={() => setIsModalOpen(false)}
             defaultType={editingEvent?.eventType as any || "NOTE"}
+            initialData={editingEvent || undefined}
           />
         </DialogContent>
       </Dialog>

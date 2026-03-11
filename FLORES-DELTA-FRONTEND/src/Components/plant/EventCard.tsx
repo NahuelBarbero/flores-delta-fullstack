@@ -1,11 +1,11 @@
 import { Button } from "@/Components/ui/button";
 import { Card, CardContent } from "@/Components/ui/card";
 import { Pencil, Trash2 } from "lucide-react";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
+import { eventTimeInfo } from "@/Utils/eventTimeInfo";
 
 interface EventCardProps {
     event: any;
+    plantCreationDate?: string;
     onEdit: () => void;
     onDelete: () => void;
 }
@@ -88,7 +88,7 @@ const renderEventDetails = (event: any) => {
     }
 };
 
-export const EventCard = ({ event, onEdit, onDelete }: EventCardProps) => {
+export const EventCard = ({ event, plantCreationDate, onEdit, onDelete }: EventCardProps) => {
     const icon = EVENT_ICONS[event.eventType] || "📌";
     const colorClass = EVENT_COLORS[event.eventType] || "border-gray-200 bg-gray-50";
 
@@ -105,10 +105,20 @@ export const EventCard = ({ event, onEdit, onDelete }: EventCardProps) => {
                             </h4>
                         </div>
 
-                        {/* Fecha */}
-                        <p className="text-xs text-muted-foreground mb-2">
-                            {format(new Date(event.fecha), "dd MMM yyyy, HH:mm", { locale: es })}
-                        </p>
+                        {/* Fecha — Día de vida + fecha absoluta */}
+                        {(() => {
+                            const timeInfo = eventTimeInfo(event.fecha, plantCreationDate);
+                            return (
+                                <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
+                                    {timeInfo.diaVida !== null && (
+                                        <span className="font-semibold text-primary/80">
+                                            Día {timeInfo.diaVida} (Sem {timeInfo.semanaVida})
+                                        </span>
+                                    )}
+                                    <span>{timeInfo.fechaCorta}</span>
+                                </div>
+                            );
+                        })()}
 
                         {/* Detalles específicos */}
                         {renderEventDetails(event)}

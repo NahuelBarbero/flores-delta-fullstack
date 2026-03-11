@@ -1,4 +1,4 @@
-import { PlantaDto } from "@/interfaces/Planta";
+import { PlantaDto, SalaDto, CepaDto } from "@/interfaces/Planta";
 import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card";
 import { Button } from "@/Components/ui/button";
 import { Pencil, Trash2, Flower2, MapPin, Calendar, TrendingUp, Eye, EyeOff, Sprout, Camera } from "lucide-react";
@@ -8,6 +8,8 @@ import { useState } from "react";
 
 interface PlantProfileProps {
     planta: PlantaDto;
+    salas?: SalaDto[]; // Opcional para backward compatibility
+    cepas?: CepaDto[]; // Opcional para backward compatibility
     onEdit: () => void;
     onDelete: () => void;
 }
@@ -38,10 +40,26 @@ const getPlantImage = (planta: PlantaDto): string => {
     return '/images/flower-indoor.png';
 };
 
-export const PlantProfile = ({ planta, onEdit, onDelete }: PlantProfileProps) => {
-    const diasActiva = differenceInDays(new Date(), new Date(planta.fechaCreacion));
+export const PlantProfile = ({ planta, onEdit, onDelete, salas = [], cepas = [] }: PlantProfileProps) => {
+    // ✅ SPRINT D: Validación fecha creación (evitar 1970)
+    const fechaCreacion = new Date(planta.fechaCreacion);
+    const isFechaValida = !isNaN(fechaCreacion.getTime()) && fechaCreacion.getFullYear() > 2020;
+
+    const diasActiva = isFechaValida
+        ? differenceInDays(new Date(), fechaCreacion)
+        : "?";
+
+    const fechaLabel = isFechaValida
+        ? format(fechaCreacion, "dd MMM yyyy", { locale: es })
+        : "Fecha desconocida";
+
     const etapaIcon = ETAPA_ICONS[planta.etapa] || <Sprout className="text-primary" size={20} />;
     const etapaLabel = ETAPA_LABELS[planta.etapa] || planta.etapa;
+
+    // ✅ Logic de Fallback (Sprint D - Backend nulo protection)
+    const salaName = planta.sala?.nombre || salas.find(s => s.id === planta.salaId)?.nombre || "Sin sala";
+    const cepaName = planta.cepaDto?.geneticaParental || cepas.find(c => c.id === planta.cepaId)?.geneticaParental || "Desconocida";
+
     const plantImage = getPlantImage(planta);
     const [imageHover, setImageHover] = useState(false);
 
@@ -72,7 +90,7 @@ export const PlantProfile = ({ planta, onEdit, onDelete }: PlantProfileProps) =>
                             </div>
                             <div>
                                 <p className="text-sm text-muted-foreground">Genética</p>
-                                <p className="font-semibold">{planta.cepaDto?.geneticaParental || "Desconocida"}</p>
+                                <p className="font-semibold">{cepaName}</p>
                             </div>
                         </div>
 
@@ -83,7 +101,7 @@ export const PlantProfile = ({ planta, onEdit, onDelete }: PlantProfileProps) =>
                             </div>
                             <div>
                                 <p className="text-sm text-muted-foreground">Sala</p>
-                                <p className="font-semibold">{planta.sala?.nombre || "Sin sala"}</p>
+                                <p className="font-semibold">{salaName}</p>
                                 {planta.ubicacion && (
                                     <p className="text-xs text-muted-foreground">📍 {planta.ubicacion}</p>
                                 )}
@@ -110,7 +128,7 @@ export const PlantProfile = ({ planta, onEdit, onDelete }: PlantProfileProps) =>
                                 <p className="text-sm text-muted-foreground">Tiempo Activa</p>
                                 <p className="font-semibold">{diasActiva} días</p>
                                 <p className="text-xs text-muted-foreground">
-                                    Desde {format(new Date(planta.fechaCreacion), "dd MMM yyyy", { locale: es })}
+                                    Desde {fechaLabel}
                                 </p>
                             </div>
                         </div>

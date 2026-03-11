@@ -164,59 +164,47 @@ export const NewPlantForm = ({ onBack, onClose, contextSalaId }: NewPlantFormPro
 
   if (isSubmitted && createdPlantData) {
     return (
-      <div className="relative overflow-hidden rounded-xl">
-        {/* Background with FONDO_CARDS */}
-        <div
-          className="absolute inset-0 bg-cover bg-center opacity-40"
-          style={{ backgroundImage: `url(/FONDO_CARDS.png)` }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-br from-background/70 to-background/50" />
+      <div className="flex flex-col items-center justify-center p-6 space-y-6">
+        <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary/20 border-2 border-primary animate-in zoom-in duration-300">
+          <CheckCircle className="w-8 h-8 text-primary" />
+        </div>
 
-        <div className="relative z-10 flex flex-col items-center justify-center p-8 space-y-6">
-          <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary/20 border-2 border-primary">
-            <CheckCircle className="w-8 h-8 text-primary" />
+        <div className="text-center space-y-2">
+          <h3 className="text-2xl font-bold text-foreground">¡Planta Registrada!</h3>
+          <p className="text-muted-foreground">La planta ha sido creada correctamente.</p>
+        </div>
+
+        {/* Compact Plant Info Card */}
+        <div className="w-full bg-muted/30 rounded-lg p-4 border border-border text-sm space-y-2">
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">ID:</span>
+            <span className="font-mono font-medium">#{plantId}</span>
           </div>
-
-          <div className="text-center space-y-4">
-            <h3 className="text-2xl font-bold text-foreground">¡Planta Registrada!</h3>
-
-            {/* Plant info card */}
-            <div className="bg-card/50 backdrop-blur-sm rounded-lg p-4 border border-primary/30 text-left space-y-2 min-w-[280px]">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">ID:</span>
-                <span className="font-mono font-semibold text-primary">#{plantId}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Nombre:</span>
-                <span className="font-semibold text-foreground">{createdPlantData.nombre}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Genética:</span>
-                <span className="font-medium text-foreground">{createdPlantData.genetica}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Sala:</span>
-                <span className="font-medium text-foreground">{createdPlantData.sala}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Etapa:</span>
-                <span className="font-medium text-foreground">{createdPlantData.etapa}</span>
-              </div>
-            </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Nombre:</span>
+            <span className="font-medium">{createdPlantData.nombre}</span>
           </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Genética:</span>
+            <span className="font-medium">{createdPlantData.genetica}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Sala:</span>
+            <span className="font-medium">{createdPlantData.sala}</span>
+          </div>
+        </div>
 
-          {/* Action buttons - all with same style */}
-          <div className="flex flex-col sm:flex-row gap-3 w-full max-w-sm">
-            <Button onClick={handleReset} variant="outline" className="flex-1 border-primary/50 hover:border-primary">
-              <Plus className="mr-2 h-4 w-4" />
+        {/* Action buttons - Compact grid */}
+        <div className="grid grid-cols-1 w-full gap-3">
+          <Button onClick={handleAddEvent} className="w-full">
+            <Plus className="mr-2 h-4 w-4" /> Agregar Primer Evento
+          </Button>
+          <div className="grid grid-cols-2 gap-3">
+            <Button onClick={handleReset} variant="outline" className="w-full">
               Crear Otra
             </Button>
-            <Button onClick={handleAddEvent} variant="outline" className="flex-1 border-primary/50 hover:border-primary">
-              <Plus className="mr-2 h-4 w-4" />
-              Agregar Evento
-            </Button>
-            <Button onClick={onClose} variant="outline" className="flex-1 border-primary/50 hover:border-primary">
-              Ir al Dashboard
+            <Button onClick={onClose} variant="ghost" className="w-full">
+              Cerrar
             </Button>
           </div>
         </div>

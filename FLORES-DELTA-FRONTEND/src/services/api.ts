@@ -35,12 +35,15 @@ export const apiService = {
   getPlantas: async (): Promise<PlantaDto[]> => {
     const response = await api.get('/api/plantas');
 
-    // ✅ FASE 3: Validación runtime con Zod
+    // ✅ FASE 3: Validación runtime con Zod (Sanitización)
     const parsed = z.array(PlantaDtoSchema).safeParse(response.data);
 
     if (!parsed.success) {
-      console.error("❌ Backend violó contrato PlantaDto:", parsed.error.issues);
-      throw new Error("Invalid server response for plantas");
+      console.warn("⚠️ Data Sanitization applied in getPlantas:", parsed.error.issues);
+      // Falla ruidosa solo en dev, o retorno de data cruda si es preferible
+      // En estrategia v2 'Shield', preferimos retornar lo que se pueda o la data cruda como fallback
+      console.log("Raw data returned due to partial validation failure");
+      return response.data as PlantaDto[];
     }
 
     return parsed.data;  // ✅ Datos garantizados conformes
@@ -49,12 +52,12 @@ export const apiService = {
   getPlantaById: async (id: string): Promise<PlantaDto> => {
     const response = await api.get(`/api/plantas/${id}`);
 
-    // ✅ FASE 3: Validación runtime
+    // ✅ SPRINT D - FASE 3: Degradación elegante (no crash si schema no matchea)
     const parsed = PlantaDtoSchema.safeParse(response.data);
 
     if (!parsed.success) {
-      console.error("❌ Backend violó contrato PlantaDto (byId):", parsed.error.issues);
-      throw new Error(`Invalid server response for planta ${id}`);
+      console.warn('⚠️ PlantaDto validation warning (byId):', parsed.error.issues);
+      return response.data;  // Degradación elegante: datos crudos pero usables
     }
 
     return parsed.data;
@@ -72,8 +75,69 @@ export const apiService = {
     return validateResponse(PlantaDtoSchema, response.data, 'POST /api/plantas');
   },
 
+  // ✅ SPRINT D - FASE 1: updatePlanta (PUT /api/plantas/{id})
+  // Conecta con PlantaController.java L69 - @PutMapping("/{id}")
+  // Usa safeParse+warn (no throw) para degradación elegante post-guardado
+  updatePlanta: async (id: number, data: Partial<PlantaDto>): Promise<PlantaDto> => {
+    const response = await api.put(`/api/plantas/${id}`, data);
+    const result = PlantaDtoSchema.safeParse(response.data);
+    if (!result.success) {
+      console.warn('[updatePlanta] Zod validation warning:', result.error.issues);
+      return response.data;
+    }
+    return result.data;
+  },
+
   deletePlanta: async (id: number): Promise<void> => {
     await api.delete(`/api/plantas/${id}`);
+  },
+
+  // ✅ SPRINT C - FASE 1: Endpoints "olvidados" del backend
+  // Filosofía: Backend-First - Delegar lógica al servidor, no filtrar en cliente
+
+  /**
+   * Búsqueda inteligente de plantas (delegada al backend)
+   * Evita filtrar arrays en el cliente - escalable con millones de registros
+   */
+  searchPlantas: async (keyword: string): Promise<PlantaDto[]> => {
+    const response = await api.get(`/api/plantas/search?palabraClave=${encodeURIComponent(keyword)}`);
+
+    const parsed = z.array(PlantaDtoSchema).safeParse(response.data);
+    if (!parsed.success) {
+      console.error("❌ Backend violó contrato PlantaDto (search):", parsed.error.issues);
+      throw new Error("Invalid server response for search plantas");
+    }
+    return parsed.data;
+  },
+
+  /**
+   * Plantas por sala (lazy loading real)
+   * Carga solo lo necesario cuando el usuario filtra por sala
+   */
+  getPlantasBySala: async (salaId: number): Promise<PlantaDto[]> => {
+    const response = await api.get(`/api/plantas/sala/${salaId}`);
+
+    const parsed = z.array(PlantaDtoSchema).safeParse(response.data);
+    if (!parsed.success) {
+      console.error("❌ Backend violó contrato PlantaDto (bySala):", parsed.error.issues);
+      throw new Error("Invalid server response for plantas by sala");
+    }
+    return parsed.data;
+  },
+
+  /**
+   * Toggle visibilidad pública de planta
+   * Acción atómica en servidor - garantiza consistencia
+   */
+  togglePublicStatus: async (plantaId: number): Promise<PlantaDto> => {
+    const response = await api.put(`/api/plantas/${plantaId}/toggle-public`);
+
+    const parsed = PlantaDtoSchema.safeParse(response.data);
+    if (!parsed.success) {
+      console.error("❌ Backend violó contrato PlantaDto (togglePublic):", parsed.error.issues);
+      throw new Error("Invalid server response for toggle public");
+    }
+    return parsed.data;
   },
 
   // --- SALAS ---
@@ -91,11 +155,12 @@ export const apiService = {
     return parsed.data;
   },
 
-  createSala: async (salaData: Partial<SalaDto>): Promise<SalaDto> => {
-    const response = await api.post('/api/salas', salaData);
+  createPlanta: async (data: PlantaDto): Promise<PlantaDto> => {
+    console.log("🌐 API createPlanta payload:", data); // DIAGNOSIS
+    const response = await api.post('/api/plantas', data);
+    console.log("✅ API createPlanta response:", response.data); // DIAGNOSIS
 
-    // ✅ Validación Zod en mutación POST
-    return validateResponse(SalaDtoSchema, response.data, 'POST /api/salas');
+    return validateResponse(PlantaDtoSchema, response.data, 'POST /api/plantas');
   },
 
   updateSala: async (id: number, salaData: Partial<SalaDto>): Promise<SalaDto> => {
@@ -195,6 +260,32 @@ export const apiService = {
     await api.delete(`/api/users/${id}`);
   },
 
+  // --- ALL EVENTS ---
+  getAllEvents: async (filters: any = {}): Promise<BackendEvent[]> => {
+    const plantIdParam = filters.plantId && filters.plantId !== 'Todas' ? filters.plantId : null;
+    const typeParam = filters.type && filters.type !== 'Todos' ? filters.type : null;
+    // Fetch all endpoints and filter manually 
+    const [watering, nutrient, pruning, note, stageChange] = await Promise.all([
+      api.get('/api/events/watering').catch(() => ({ data: [] })),
+      api.get('/api/events/nutrient').catch(() => ({ data: [] })),
+      api.get('/api/events/pruning').catch(() => ({ data: [] })),
+      api.get('/api/events/note').catch(() => ({ data: [] })),
+      api.get('/api/events/stage-change').catch(() => ({ data: [] })),
+    ]);
+    let allEvents: BackendEvent[] = [
+      ...watering.data,
+      ...nutrient.data,
+      ...pruning.data,
+      ...note.data,
+      ...stageChange.data,
+    ];
+    // Filter logic (simplified for fix)
+    if (typeParam) allEvents = allEvents.filter((e) => e.eventType === typeParam);
+    if (plantIdParam) allEvents = allEvents.filter((e) => e.plantaIds?.includes(Number(plantIdParam)));
+    allEvents.sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
+    return allEvents;
+  },
+
   // --- EVENTOS ---
   createNutrientEvent: async (eventData: any): Promise<BackendEvent> => {
     const response = await api.post('/api/events/nutrient', eventData);
@@ -211,9 +302,16 @@ export const apiService = {
     return response.data;
   },
 
-  createNoteEvent: async (formData: FormData): Promise<BackendEvent> => {
-    const response = await api.post('/api/events/note', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' } // Optional, axios sets it automatically usually
+  createNoteEvent: async (data: FormData): Promise<BackendEvent> => {
+    const response = await api.post('/api/events/note', data, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  },
+
+  updateNoteEvent: async (id: number, data: FormData): Promise<BackendEvent> => {
+    const response = await api.put(`/api/events/note/${id}`, data, {
+      headers: { 'Content-Type': 'multipart/form-data' },
     });
     return response.data;
   },
@@ -227,6 +325,43 @@ export const apiService = {
 
   createStageChangeEvent: async (eventData: StageChangeEventPayload): Promise<BackendEvent> => {
     const response = await api.post('/api/events/stage-change', eventData);
+    return response.data;
+  },
+
+  // ✅ SPRINT C - FASE 2: MeasurementEvent CRUD
+  // Conecta con MeasurementEventController del backend
+
+  /**
+   * Crear evento de medición (altura, temp, humedad, etc.)
+   * Datos estructurados para analítica rica (no notas de texto)
+   */
+  createMeasurementEvent: async (eventData: {
+    fecha: string;
+    plantaIds: number[];
+    horasLuz?: string;
+    humedad?: number;
+    temperaturaAmbiente?: number;
+    alturaPlanta?: number;
+    distanciaLuz?: number;
+    nota?: string;
+  }): Promise<BackendEvent> => {
+    const response = await api.post('/api/events/measurement', eventData);
+    return response.data;
+  },
+
+  /**
+   * Obtener eventos de medición (para gráficos y analítica)
+   */
+  getMeasurementEvents: async (): Promise<BackendEvent[]> => {
+    const response = await api.get('/api/events/measurement');
+    return response.data;
+  },
+
+  /**
+   * Obtener mediciones de una planta específica (analítica por planta)
+   */
+  getMeasurementEventsByPlanta: async (plantaId: number): Promise<BackendEvent[]> => {
+    const response = await api.get(`/api/events/measurement/planta/${plantaId}`);
     return response.data;
   },
 

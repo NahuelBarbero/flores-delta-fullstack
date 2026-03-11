@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -84,16 +84,56 @@ export const DirectAccessMenu = () => {
     staleTime: 1000 * 60 * 5,
   });
 
+  // ✅ SPRINT C - 100%: Debounce para búsqueda backend
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchPlant);
+    }, 300); // 300ms debounce
+    return () => clearTimeout(timer);
+  }, [searchPlant]);
+
+  // ✅ SPRINT C - 100%: Query condicional - Búsqueda backend
+  const { data: searchResults = [], isLoading: isSearching } = useQuery<PlantaDto[]>({
+    queryKey: ['plantas', 'search', debouncedSearch],
+    queryFn: () => apiService.searchPlantas(debouncedSearch),
+    enabled: isOpen && debouncedSearch.length >= 2,
+    staleTime: 1000 * 30,
+  });
+
+  // ✅ SPRINT C - 100%: Query condicional - Plantas por sala backend
+  const selectedSalaId = selectedSalaIds.length === 1 ? Number(selectedSalaIds[0]) : null;
+  const { data: plantasBySala = [], isLoading: isLoadingBySala } = useQuery<PlantaDto[]>({
+    queryKey: ['plantas', 'sala', selectedSalaId],
+    queryFn: () => apiService.getPlantasBySala(selectedSalaId!),
+    enabled: isOpen && selectedSalaId !== null && debouncedSearch.length < 2,
+    staleTime: 1000 * 60 * 2,
+  });
+
   // Filter plants - only show if there's a filter or search
   const hasFilter = selectedSalaIds.length > 0 || searchPlant.length > 0;
 
-  const filteredPlantas = selectedSalaIds.length > 0
-    ? plantas.filter(p => selectedSalaIds.includes(p.sala?.id.toString() || ''))
-    : plantas;
+  // ✅ SPRINT C - 100%: Lógica de selección de datos (backend-first)
+  const displayPlantas = useMemo(() => {
+    // Prioridad 1: Búsqueda activa -> usar resultados del backend
+    if (debouncedSearch.length >= 2) {
+      return searchResults;
+    }
+    // Prioridad 2: Una sola sala seleccionada -> usar query por sala
+    if (selectedSalaId !== null) {
+      return plantasBySala;
+    }
+    // Prioridad 3: Múltiples salas -> filtrar localmente (fallback)
+    if (selectedSalaIds.length > 1) {
+      return plantas.filter(p => selectedSalaIds.includes(p.sala?.id.toString() || ''));
+    }
+    // Sin filtros -> todas las plantas
+    return plantas;
+  }, [debouncedSearch, searchResults, selectedSalaId, plantasBySala, selectedSalaIds, plantas]);
 
-  const searchedPlantas = filteredPlantas.filter(p =>
-    p.nombre.toLowerCase().includes(searchPlant.toLowerCase())
-  );
+  // ✅ Alias para compatibilidad con código existente
+  const searchedPlantas = displayPlantas;
 
   // Batch mutation example (for watering - can be extended)
   const batchWateringMutation = useMutation({
@@ -340,11 +380,12 @@ export const DirectAccessMenu = () => {
                   )}
 
                   {/* Plant List - Only show if there's a filter */}
+                  {/* ✅ SPRINT C - Fase 3: Aumentado max-h para mejor UX en desktop */}
                   {hasFilter ? (
                     <div
                       role="listbox"
                       aria-label="Seleccionar plantas"
-                      className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto"
+                      className="grid grid-cols-2 gap-2 max-h-48 lg:max-h-64 overflow-y-auto"
                     >
                       {searchedPlantas.length > 0 ? (
                         searchedPlantas.map((planta) => (

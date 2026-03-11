@@ -15,7 +15,8 @@ import { Loader2 } from "lucide-react";
 import { useDirectAccessMenuStore } from "@/stores/useDirectAccessMenuStore";
 import { EventTypeIcon, getEventTypeLabel } from "@/Components/events/EventTypeIcon";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/Components/ui/table";
-import { EventCard } from "@/Components/bitacora/EventCard";  // ✅ NUEVO
+import { BitacoraFilterBar } from "@/Components/bitacora/BitacoraFilterBar"; // ✅ NUEVO
+import { BitacoraFeedCard } from "@/Components/bitacora/BitacoraFeedCard"; // ✅ NUEVO
 
 // --- Tipos para Eventos del Backend (reutilizando la del PlantDetailPage) ---
 interface BackendEvent {
@@ -61,13 +62,15 @@ const MasterFilterBar = ({ filters, setFilters, salas, plantas }: any) => {
   }, [availablePlants, filters.plantId, setFilters]);
 
   return (
-    <div className="mb-8 p-6 bg-card/30 backdrop-blur-sm rounded-xl border-2 border-primary/50 shadow-sm">
-      <h3 className="text-lg font-semibold mb-4 flex items-center"><Filter className="mr-2" />Filtros Avanzados</h3>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Select value={filters.type} onValueChange={(value) => setFilters((f: any) => ({ ...f, type: value }))}>
-          <SelectTrigger><SelectValue placeholder="Tipo de Evento" /></SelectTrigger>
-          <SelectContent>{EVENT_TYPES.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}</SelectContent>
-        </Select>
+    <div className="mb-4 space-y-4">
+      {/* ✅ Barra de Filtros Visual (Tipo de Evento) - Reemplaza al Select aburrido */}
+      <BitacoraFilterBar
+        selectedType={filters.type === 'Todos' ? null : filters.type}
+        onSelectType={(type) => setFilters((f: any) => ({ ...f, type: type || 'Todos' }))}
+      />
+
+      {/* Filtros Secundarios (Sala, Planta, Fecha) */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-card/50 p-4 rounded-xl border">
         <Select value={filters.sala} onValueChange={(value) => setFilters((f: any) => ({ ...f, sala: value, plantId: 'Todas' }))}>
           <SelectTrigger><SelectValue placeholder="Sala" /></SelectTrigger>
           <SelectContent>
@@ -84,16 +87,16 @@ const MasterFilterBar = ({ filters, setFilters, salas, plantas }: any) => {
         </Select>
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant={"outline"} className="justify-start text-left font-normal">
+            <Button variant={"outline"} className="justify-start text-left font-normal w-full">
               <CalendarIcon className="mr-2 h-4 w-4" />
               {filters.dateRange?.from ? (
                 filters.dateRange.to ? (
-                  `${format(filters.dateRange.from, "LLL dd, y")} - ${format(filters.dateRange.to, "LLL dd, y")}`
+                  `${format(filters.dateRange.from, "dd/MM/yy")} - ${format(filters.dateRange.to, "dd/MM/yy")}`
                 ) : (
-                  format(filters.dateRange.from, "LLL dd, y")
+                  format(filters.dateRange.from, "dd/MM/yy")
                 )
               ) : (
-                <span>Seleccionar rango</span>
+                <span>Filtrar por Fecha</span>
               )}
             </Button>
           </PopoverTrigger>
@@ -342,7 +345,17 @@ export default function MainLogPage() {
             ) : (
               <>
                 <MasterFilterBar filters={filters} setFilters={setFilters} salas={allSalas} plantas={allPlantas} />
-                <MasterLogTable events={filteredEvents} plantas={allPlantas} />
+
+                {/* ✅ VISTA DUAL: Feed (Mobile) vs Tabla (Desktop) */}
+                <div className="hidden md:block animate-in fade-in duration-500">
+                  <MasterLogTable events={filteredEvents} plantas={allPlantas} />
+                </div>
+
+                <div className="md:hidden space-y-4 animate-in slide-in-from-bottom-4 duration-500">
+                  {filteredEvents.map((event) => (
+                    <BitacoraFeedCard key={event.id} event={event} />
+                  ))}
+                </div>
               </>
             )}
           </main>

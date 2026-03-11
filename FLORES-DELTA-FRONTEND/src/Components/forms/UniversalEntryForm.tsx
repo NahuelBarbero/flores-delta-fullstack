@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import {
     FileText, Camera, Droplets, Scissors, Leaf, RefreshCw,
-    Mic, Square, Trash2, CheckCircle, Loader2, Calendar
+    Mic, Square, Trash2, CheckCircle, Loader2, Calendar, MapPin
 } from "lucide-react";
 import { Button } from "@/Components/ui/button";
 import { Input } from "@/Components/ui/input";
@@ -15,13 +15,17 @@ import {
 } from "@/Components/ui/select";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiService } from "@/services/api";
+import { SalaDto, PlantaDto } from "@/interfaces/Planta";
+import { BackendEvent } from "@/interfaces/Eventos";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
 // Validaciones
 const entrySchema = z.object({
-    eventType: z.enum(["NOTE", "PHOTO", "WATERING", "PRUNING", "NUTRIENT", "STAGE_CHANGE"]),
+    eventType: z.enum(["NOTE", "WATERING", "PRUNING", "NUTRIENT", "STAGE_CHANGE", "SALA"]),
     fecha: z.string(),
+    // Sala Change
+    sala_id: z.string().optional(),
     // Note/Photo
     observacion: z.string().optional(),
     // Watering
@@ -49,11 +53,14 @@ type EntryFormData = z.infer<typeof entrySchema>;
 interface UniversalEntryFormProps {
     plantaId: string;
     onClose: () => void;
-    defaultType?: "NOTE" | "PHOTO" | "WATERING" | "PRUNING" | "NUTRIENT" | "STAGE_CHANGE";
+    defaultType?: "NOTE" | "PHOTO" | "WATERING" | "PRUNING" | "NUTRIENT" | "STAGE_CHANGE" | "SALA";
+    initialData?: BackendEvent; // ✅ Permitir edición
 }
 
-export const UniversalEntryForm = ({ plantaId, onClose, defaultType = "NOTE" }: UniversalEntryFormProps) => {
-    const [eventType, setEventType] = useState(defaultType);
+export const UniversalEntryForm = ({ plantaId, onClose, defaultType = "NOTE", initialData }: UniversalEntryFormProps) => {
+    // Si estamos editando, usamos el tipo del evento original
+    const [eventType, setEventType] = useState<any>(initialData?.eventType || defaultType);
+    const isEditing = !!initialData;
     const [isRecording, setIsRecording] = useState(false);
     const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
     const [mediaFiles, setMediaFiles] = useState<FileList | null>(null);
@@ -71,17 +78,30 @@ export const UniversalEntryForm = ({ plantaId, onClose, defaultType = "NOTE" }: 
         enabled: eventType === 'NUTRIENT'
     });
 
+    const { data: salas = [] } = useQuery<SalaDto[]>({
+        queryKey: ['salas'],
+        queryFn: apiService.getSalas,
+        enabled: eventType === 'SALA'
+    });
+
+    // Fetch Planta details for Sala Update
+    const { data: planta } = useQuery<PlantaDto>({
+        queryKey: ['planta', plantaId],
+        queryFn: () => apiService.getPlantaById(plantaId),
+        enabled: eventType === 'SALA'
+    });
+
     const form = useForm<EntryFormData>({
         resolver: zodResolver(entrySchema),
         defaultValues: {
-            eventType: defaultType,
-            fecha: new Date().toISOString().split('T')[0],
-            observacion: "",
-            phAgua: "",
-            ecAgua: "",
-            tipoPoda: "",
-            nutriente_id: "",
-            nuevaEtapa: "",
+            eventType: initialData?.eventType || defaultType,
+            fecha: initialData?.fecha ? new Date(initialData.fecha).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+            observacion: initialData?.text || initialData?.description || initialData?.observacion || "", // Note uses 'text' in backend
+            phAgua: initialData?.phAgua?.toString() || "",
+            ecAgua: initialData?.ecAgua?.toString() || "",
+            tipoPoda: initialData?.tipoPoda || "",
+            nutriente_id: initialData?.nutriente?.id?.toString() || "",
+            nuevaEtapa: initialData?.nuevaEtapa || "",
         }
     });
 
@@ -126,16 +146,47 @@ export const UniversalEntryForm = ({ plantaId, onClose, defaultType = "NOTE" }: 
 
     const genericMutation = useMutation({
         mutationFn: async (data: any) => {
-            // Dispatcher based on type
-            if (eventType === 'NOTE' || eventType === 'PHOTO') {
+            // Manejo especial Cambio de Sala (FULL Update + Note)
+            if (eventType === 'SALA') {
+                if (!data.sala_id) throw new Error("Selecciona una sala");
+                if (!planta) throw new Error("Datos de planta no cargados");
+
+                // Construct FULL payload to avoid 500 error
+                const fullPayload = {
+                    ...planta,
+                    salaId: Number(data.sala_id),
+                    // Ensure dates are strings or nulls as expected by backend DTO
+                    fechaCreacion: planta.fechaCreacion ? new Date(planta.fechaCreacion).toISOString().split('T')[0] : null,
+                    fechaFin: planta.fechaFin ? new Date(planta.fechaFin).toISOString().split('T')[0] : null,
+                };
+
+                await apiService.updatePlanta(Number(plantaId), fullPayload);
+
+                const newSalaName = salas.find(s => s.id.toString() === data.sala_id)?.nombre || "Nueva Sala";
+                const oldSalaName = salas.find(s => s.id === planta.salaId)?.nombre || "Sala Anterior";
+
                 const formData = new FormData();
                 formData.append("plantaIds", plantaId);
                 formData.append("fecha", data.fecha);
-                formData.append(eventType === 'NOTE' ? "text" : "description", data.observacion || "Sin contenido");
-                if (mediaFiles) Array.from(mediaFiles).forEach(f => formData.append("files", f));
+                formData.append("text", `🔄 Movimiento de Sala: De "${oldSalaName}" a "${newSalaName}"`);
+                if (data.observacion) formData.append("text", `\nMotivo: ${data.observacion}`);
+                return apiService.createNoteEvent(formData);
+            }
+
+            // Dispatcher based on type
+            if (eventType === 'NOTE') {
+                const formData = new FormData();
+                if (!isEditing) formData.append("plantaIds", plantaId); // Only for create
+                formData.append("fecha", data.fecha);
+                formData.append("text", data.observacion || "Sin contenido");
+                if (mediaFiles) Array.from(mediaFiles).forEach(f => formData.append("files", f)); // Add new files
                 if (audioBlob) formData.append("files", new File([audioBlob], "voice.webm", { type: 'audio/webm' }));
-                // Special handling: Note uses createNoteEvent, Photo uses createPhotoEvent
-                return eventType === 'NOTE' ? apiService.createNoteEvent(formData) : apiService.createPhotoEvent(formData);
+
+                if (isEditing && initialData?.id) {
+                    return apiService.updateNoteEvent(initialData.id, formData);
+                } else {
+                    return apiService.createNoteEvent(formData);
+                }
             } else {
                 // JSON payloads
                 const payload: any = { plantaIds: [parseInt(plantaId)], fecha: data.fecha };
@@ -149,7 +200,7 @@ export const UniversalEntryForm = ({ plantaId, onClose, defaultType = "NOTE" }: 
                 } else if (eventType === 'STAGE_CHANGE') {
                     payload.nuevaEtapa = data.nuevaEtapa;
                 }
-                // Dynamic call to the specific service method is tricky with types, so switch:
+                // Dynamic call to the specific service method
                 switch (eventType) {
                     case 'WATERING': return apiService.createWateringEvent(payload);
                     case 'PRUNING': return apiService.createPruningEvent(payload);
@@ -159,7 +210,12 @@ export const UniversalEntryForm = ({ plantaId, onClose, defaultType = "NOTE" }: 
             }
         },
         onSuccess: () => {
-            toast({ title: "¡Evento Registrado!", description: `Se ha guardado tu ${eventType.toLowerCase()}.` });
+            if (eventType === 'SALA') {
+                toast({ title: "Sala Actualizada", description: "La planta se movió correctamente." });
+                queryClient.invalidateQueries({ queryKey: ['planta', plantaId] }); // Update plant profile too
+            } else {
+                toast({ title: "¡Evento Registrado!", description: `Se ha guardado tu ${eventType.toLowerCase()}.` });
+            }
             queryClient.invalidateQueries({ queryKey: ['plantEvents'] });
             onClose();
         },
@@ -175,10 +231,11 @@ export const UniversalEntryForm = ({ plantaId, onClose, defaultType = "NOTE" }: 
     return (
         <div className="space-y-4">
             {/* Type Selector */}
-            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mb-4">
+            {/* Type Selector - Compact Grid */}
+            <div className="grid grid-cols-6 gap-1 mb-2">
                 {[
                     { id: "NOTE", icon: FileText, label: "Nota" },
-                    { id: "PHOTO", icon: Camera, label: "Foto" },
+                    { id: "SALA", icon: MapPin, label: "Sala" }, // Replaced PHOTO with SALA
                     { id: "WATERING", icon: Droplets, label: "Riego" },
                     { id: "NUTRIENT", icon: Leaf, label: "Nutri." },
                     { id: "PRUNING", icon: Scissors, label: "Poda" },
@@ -188,11 +245,16 @@ export const UniversalEntryForm = ({ plantaId, onClose, defaultType = "NOTE" }: 
                         key={t.id}
                         type="button"
                         variant={eventType === t.id ? "default" : "outline"}
-                        className={cn("flex flex-col h-16 gap-1", eventType === t.id ? "bg-primary text-primary-foreground" : "")}
-                        onClick={() => setEventType(t.id as any)}
+                        className={cn(
+                            "flex flex-col h-14 p-1 gap-0.5",
+                            eventType === t.id ? "bg-primary text-primary-foreground" : "hover:bg-accent",
+                            isEditing && eventType !== t.id ? "opacity-50 cursor-not-allowed" : "" // Disable if editing other type
+                        )}
+                        onClick={() => !isEditing && setEventType(t.id as any)}
+                        disabled={isEditing && eventType !== t.id}
                     >
-                        <t.icon className="w-5 h-5" />
-                        <span className="text-[10px]">{t.label}</span>
+                        <t.icon className="w-4 h-4" />
+                        <span className="text-[9px] font-medium leading-tight">{t.label}</span>
                     </Button>
                 ))}
             </div>
@@ -208,6 +270,12 @@ export const UniversalEntryForm = ({ plantaId, onClose, defaultType = "NOTE" }: 
                     <div className="space-y-4">
                         <div>
                             <Label>{eventType === 'NOTE' ? 'Contenido' : 'Descripción'}</Label>
+                            {isEditing && form.getValues("observacion")?.includes("Movimiento de Sala") && (
+                                <p className="text-xs text-muted-foreground mb-1 bg-yellow-500/10 p-1 rounded border border-yellow-500/20">
+                                    💡 Estás editando el registro histórico de un cambio de sala.
+                                    Si deseas mover la planta nuevamente, cancela y selecciona "Nuevo Evento &gt; Sala".
+                                </p>
+                            )}
                             <Textarea {...form.register("observacion")} placeholder="Escribe aquí..." />
                         </div>
                         {/* Audio Recorder */}
@@ -260,6 +328,29 @@ export const UniversalEntryForm = ({ plantaId, onClose, defaultType = "NOTE" }: 
                                 {["GERMINACION", "PLANTIN", "VEGETACION", "FLORACION", "COSECHADA"].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                             </SelectContent>
                         </Select>
+                    </div>
+                )}
+
+                {eventType === 'SALA' && (
+                    <div className="space-y-3">
+                        <div className="bg-muted p-2 rounded text-xs text-muted-foreground">
+                            Sala Actual: {planta ? (salas.find(s => s.id === planta.salaId)?.nombre || "Cargando...") : <Loader2 className="w-3 h-3 animate-spin inline" />}
+                        </div>
+                        <div>
+                            <Label>Nueva Sala</Label>
+                            <Select onValueChange={v => form.setValue("sala_id", v)}>
+                                <SelectTrigger><SelectValue placeholder="Selecciona sala destino..." /></SelectTrigger>
+                                <SelectContent>
+                                    {salas.filter((s: any) => s.id !== planta?.salaId).map((s: any) => (
+                                        <SelectItem key={s.id} value={s.id.toString()}>{s.nombre}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div>
+                            <Label>Motivo / Observación</Label>
+                            <Textarea {...form.register("observacion")} placeholder="Ej: Pasó a floración..." className="h-20" />
+                        </div>
                     </div>
                 )}
 

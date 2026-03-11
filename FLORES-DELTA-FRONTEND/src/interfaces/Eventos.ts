@@ -9,6 +9,7 @@ export interface BackendEvent {
   observacion?: string;
   nuevaEtapa?: string;
   description?: string;
+  text?: string; // For NOTE events from backend
   mediaUrls?: string[];
   nutriente?: { id: number; titulo: string };
 }
