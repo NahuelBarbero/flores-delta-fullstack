@@ -44,6 +44,11 @@ logs/
 *.bak
 *.tmp
 temp_*
+startup_log.txt
+
+# ===== AGENT TOOLING (LOCAL DEV) =====
+.agents/
+.gemini/
 
 # ===== REFERENCIAS LOCALES (NO SUBIR A GITHUB) =====
 Fotos FD/

@@ -1,135 +1,63 @@
 # 🌱 Flores Delta - Cannabis Cultivation Management System
 
-> Full-stack application for professional cannabis cultivation tracking and management
+> **Versión Actual:** Sprint G (UX Revolution) - Fase 1
+> **Estado:** 🟢 Estabilizado & En Expansión
+
+Flores Delta es un sistema integral para la gestión profesional de cultivos de cannabis, diseñado para potenciar la toma de decisiones basada en datos (Data-Driven Cultivation).
 
 [![Backend](https://img.shields.io/badge/Backend-Spring%20Boot%203.2-green)](delta-flores/)
 [![Frontend](https://img.shields.io/badge/Frontend-React%2018%20%2B%20TS-blue)](FLORES-DELTA-FRONTEND/)
-[![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
+[![UX](https://img.shields.io/badge/UX-Vibe%20Coding-purple)](docs/audits/CHECKPOINT_DE_BALANCE_12_FEB.md)
 
-## 📋 Overview
+## 🌟 Novedades (Sprint G)
+*   🧙‍♂️ **Wizard de Plantas:** Creación visual y guiada de nuevas plantas.
+*   📱 **Bitácora Feed:** Vista tipo "Instagram" optimizada para móviles.
+*   ⚡ **Filtros Ágiles:** Navegación por botones para eventos (Riego, Poda, etc.).
+*   📊 **Dashboard Vivo:** Métricas en tiempo real y alertas de riego.
 
-Flores Delta is a comprehensive cultivation management system designed for professional cannabis growers. It provides end-to-end tracking of plants, environmental conditions, growth stages, and cultivation events.
+## 🚀 Quick Start (Para Lautaro & Devs)
 
-### Key Features
+### Prerrequisitos
+*   Docker Desktop (Activo y corriendo).
+*   Node.js 18+.
 
-- 🌿 **Plant Management**: Track individual plants through their entire lifecycle
-- 🏠 **Room/Space Management**: Monitor environmental conditions per cultivation area
-- 🧬 **Genetics Database**: Manage strain information and characteristics
-- 📊 **Event Logging**: Record watering, pruning, nutrient application, and more
-- 👥 **Multi-user Support**: Role-based access control (Grower, Admin, Super Admin)
-- 📈 **Analytics Dashboard**: KPIs and insights on cultivation performance
-
-## 🏗️ Architecture
-
-```
-flores-delta-mvp/
-├── delta-flores/     Spring Boot 3.2 + PostgreSQL
-├── FLORES-DELTA-FRONTEND/  React 18 + TypeScript + Vite
-└── docs/            Architecture & guides
-```
-
-### Tech Stack
-
-**Backend:**
-- Java 17
-- Spring Boot 3.2.x
-- Spring Security (JWT)
-- PostgreSQL 15
-- Hibernate/JPA
-- MinIO (object storage)
-
-**Frontend:**
-- React 18
-- TypeScript 5
-- Vite
-- TanStack Query (React Query)
-- Zod (runtime validation)
-- Tailwind CSS + shadcn/ui
-- Recharts
-
-## 🚀 Quick Start
-
-### Prerequisites
-
-- Java 21+
-- Node.js 18+
-- PostgreSQL 15
-- Maven 3.8+ (included via mvnw)
-
-### Option 1: Docker Compose (Recommended)
-
-```bash
-# Copiar variables de entorno
-cp .env.example .env
-
-# Arrancar stack completo
-docker-compose up -d
-
-# Acceder a:
-# - Frontend: http://localhost
-# - Backend API: http://localhost:8080
-# - MinIO Console: http://localhost:9001
-```
-
-Ver [README-DOCKER.md](README-DOCKER.md) para detalles completos.
-
-### Option 2: Development Mode
-
-**Backend:**
+### 1. Iniciar Backend & Base de Datos (Docker)
 ```bash
 cd delta-flores/web
+docker-compose up -d
 ./mvnw spring-boot:run
 ```
+*   **Backend API:** `http://localhost:8080`
+*   **Swagger:** `http://localhost:8080/swagger-ui.html`
 
-Backend runs on `http://localhost:8080`
-
-See [delta-flores/README.md](delta-flores/README.md) for detailed setup.
-
-**Frontend:**
+### 2. Iniciar Frontend
 ```bash
 cd FLORES-DELTA-FRONTEND
 npm install
 npm run dev
 ```
+*   **App:** `http://localhost:5173`
 
-Frontend runs on `http://localhost:5173`
-
-See [FLORES-DELTA-FRONTEND/README.md](FLORES-DELTA-FRONTEND/README.md) for detailed setup.
-
-### Default Credentials
-
-- Email: `admin@delta.com`
-- Password: `admin123`
-
-## 📚 Documentation
-
-- [Architecture Overview](docs/architecture/ARQUITECTURA_FILOSOFIA_SOCIO.md)
-- [Development Setup](docs/guides/INSTRUCCIONES_ARRANQUE.md)
-- [Docker Deployment](README-DOCKER.md)
-- [Testing Manual](docs/audits/CHECKPOINT_TESTING_MANUAL.md)
-
-## 🧪 Testing
-
-```bash
-# Backend tests
-cd delta-flores/web
-./mvnw test
-
-# Frontend tests
-cd FLORES-DELTA-FRONTEND
-npm run test
-```
-
-## 📄 License
-
-This project is licensed under the MIT License.
-
-## 👨‍💻 Authors
-
-- **Backend Architecture** - LautaroCozzi
-- **Frontend Development** - NahuelBarbero
+### 3. Credenciales de Acceso (Admin)
+*   **Email:** `admin@delta.com`
+*   **Password:** `admin123`
 
 ---
 
-**Status:** 🟢 Production Ready | **Version:** 1.0.0 MVP
+## 📚 Documentación Clave
+Para entender el estado actual del proyecto, revisa estos documentos en orden:
 
+1.  [📍 CHECKPOINT DE BALANCE (12 Feb)](CHECKPOINT_12_FEB.md) - **LEER PRIMERO**
+2.  [PLAN MAESTRO SPRINT G](docs/planning/PLAN_MAESTRO_SPRINT_G.md) - El futuro inmediato.
+3.  [Contexto Histórico](docs/context/CONTEXTO_SPRINT_D_E_F.md) - Cómo llegamos aquí.
+
+## 🏗️ Arquitectura
+*   **Frontend:** React 18, TypeScript, Tailwind, Shadcn UI, TanStack Query.
+*   **Backend:** Java Spring Boot 3.2, PostgreSQL, JWT Auth.
+*   **Filosofía:** GUS (Growth, Utility, Structure).
+
+---
+**Authors:**
+*   LautaroCozzi (Backend Architect)
+*   NahuelBarbero (Frontend & Product)
+*   Antigravity (AI Agent - Assistant)
