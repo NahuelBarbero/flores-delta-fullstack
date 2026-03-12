@@ -49,18 +49,17 @@
 
 ## Estado actual del sprint
 
-### Última sesión: 2 Mar 2026 (checkout formal)
-- ✅ Creado skill global `protocolo-proyecto` (SETUP/CONTINUE/LOOP/CHECKOUT)
-- ✅ Creado `IDENTIDAD_PROYECTO.md`
-- ✅ Creado `MAPA_UNICO.md` — 35 items de 4 fuentes cruzadas y deduplicadas
-- ✅ Creado `ROADMAP.md` — 4 semanas, 31 items planificados
-- ✅ Creado workflow `/inicio-sesion` — llave de arranque automático
-- ✅ Actualizado `CONTEXTO_ACTIVO.md` como punto de entrada del sistema
+### Última sesión: 11 Mar 2026 (checkout formal)
+- ✅ **Pivot Estratégico:** Pausados los Quick Wins para realizar una **Auditoría E2E del Sistema de Eventos** (Plan de 11 pasos creado).
+- ✅ **Análisis Backend:** Comparación exhaustiva entre `main` (Lautaro) y local. Descubrimiento riesgoso: 3 endpoints nuevos locales no están en `main`.
+- ✅ **Limpieza Repository:** Eliminados backups pesados `.sql`, logs sueltos, rastros de Lovable AI de Vite config. 
+- ✅ **Push GitHub:** 5 commits atómicos enviados a `feature/redesign-gwj-hybrid`.
+- ✅ **Handover Lautaro:** Creado `STATUS_UPDATE_MARZO_2026.md` para notificarle los gaps y decisiones.
 
-### Estado Actual: Auditoría del Sistema de Eventos (Mar 2026)
-**Objetivo:** Alinear al 100% el tipado y renderizado del frontend con el backend real de Lautaro.
-**Plan Activo:** Plan de 11 pasos documentado en `../STATUS_UPDATE_MARZO_2026.md` y `C:\Users\gabyb\.gemini\antigravity\brain\53c8512c-9916-4e45-92b5-9cfef23d3355\implementation_plan.md`
-**Meta Inmediata:** Levantar la app, unificar `BackendEvent`, corregir `any` types en las cards de eventos, y auditar cada evento individual (Poda, Riego, etc.).
+### Próxima sesión: Auditoría Eventos — Paso 1
+**Objetivo Inmediato:** Levantar Docker, Backend Java y Frontend React.
+**Acción 1:** Validar features E2E básicas empíricamente (V1-V7).
+**Acción 2:** Aplicar ampliación de tipados a `BackendEvent` (DT3+DT1) basado en el backend corriendo vivo.
 
 ---
 
