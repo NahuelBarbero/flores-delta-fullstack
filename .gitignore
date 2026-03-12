@@ -43,8 +43,10 @@ logs/
 *.backup
 *.bak
 *.tmp
+*.sql
 temp_*
 startup_log.txt
+delta-flores-original/
 
 # ===== AGENT TOOLING (LOCAL DEV) =====
 .agents/
