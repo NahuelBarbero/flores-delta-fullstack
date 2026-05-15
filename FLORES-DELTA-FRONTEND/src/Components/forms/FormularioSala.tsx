@@ -4,10 +4,10 @@ import * as z from "zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiService } from "@/services/api";
 import { SalaDto } from "@/interfaces/Planta";
-import { Button } from "@/Components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/Components/ui/form";
+import { Button } from "@/components/ui/button";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { FormInputField } from "./FormInputField";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/Components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, Home, Sun } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 

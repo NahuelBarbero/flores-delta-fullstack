@@ -3,7 +3,7 @@ import {
     FormField,
     FormItem,
     FormLabel,
-} from "@/Components/ui/form";
+} from "@/components/ui/form";
 
 interface FormCheckboxFieldProps {
     control: any;

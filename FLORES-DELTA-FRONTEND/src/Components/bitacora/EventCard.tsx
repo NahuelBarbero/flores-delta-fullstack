@@ -1,4 +1,4 @@
-import { Card } from "@/Components/ui/card";
+import { Card } from "@/components/ui/card";
 import { format } from "date-fns";
 import { Droplet, Scissors, Bug, Sprout, AlertTriangle } from "lucide-react";
 

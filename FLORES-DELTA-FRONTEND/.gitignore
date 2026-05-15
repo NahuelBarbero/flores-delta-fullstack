@@ -23,6 +23,14 @@ pnpm-debug.log*
 .vscode/
 .idea/
 
+# Dead files removed after cleanup
+/SPRINT 3
+/debug-auth.html
+/verificar_localstorage.html
+/fix-planttimeline-url.ps1
+/clear_localstorage.ps1
+/BACKEND
+
 # OS specific
 .DS_Store
 Thumbs.db

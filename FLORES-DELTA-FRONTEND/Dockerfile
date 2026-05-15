@@ -3,6 +3,10 @@
 # ================================
 FROM node:18-alpine AS builder
 
+# ARG para VITE_API_URL (se hornea en build time de Vite)
+ARG VITE_API_URL=http://localhost:8080
+ENV VITE_API_URL=$VITE_API_URL
+
 WORKDIR /app
 
 # Copiar package files primero (cache de node_modules)

@@ -3,8 +3,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Droplets, CheckCircle, ArrowLeft, Loader2 } from "lucide-react";
-import { Button } from "@/Components/ui/button";
-import { Input } from "@/Components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
     Form,
     FormControl,
@@ -13,7 +13,7 @@ import {
     FormLabel,
     FormMessage,
     FormDescription,
-} from "@/Components/ui/form";
+} from "@/components/ui/form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiService } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";

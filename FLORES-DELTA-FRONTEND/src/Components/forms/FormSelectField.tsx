@@ -4,14 +4,14 @@ import {
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/Components/ui/select";
+} from "@/components/ui/select";
 import {
     FormControl,
     FormField,
     FormItem,
     FormLabel,
     FormMessage,
-} from "@/Components/ui/form";
+} from "@/components/ui/form";
 
 interface SelectOption {
     value: string;

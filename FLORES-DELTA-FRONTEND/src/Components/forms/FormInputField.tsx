@@ -1,11 +1,11 @@
-import { Input } from "@/Components/ui/input";
+import { Input } from "@/components/ui/input";
 import {
     FormControl,
     FormField,
     FormItem,
     FormLabel,
     FormMessage,
-} from "@/Components/ui/form";
+} from "@/components/ui/form";
 
 interface FormInputFieldProps {
     control: any;

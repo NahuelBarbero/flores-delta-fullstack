@@ -1,9 +1,9 @@
-import api from "@/Utils/api";
+import api from "@/utils/api";
 import { PlantaDto, SalaDto, CepaDto, UserDto, NutrienteDto } from "@/interfaces/Planta";  // ✅ Agregado UserDto
 import { BackendEvent, WateringEventPayload, PruningEventPayload, StageChangeEventPayload } from "@/interfaces/Eventos";
 import { PlantaDtoSchema, SalaDtoSchema, CepaDtoSchema, UserDtoSchema, NutrienteDtoSchema } from "@/schemas/DTOSchemas";  // ✅ Agregado UserDtoSchema
 import { z } from 'zod';
-import { validateResponse } from '@/Utils/validationHelper';  // ✅ Sprint 4.2
+import { validateResponse } from '@/utils/validationHelper';  // ✅ Sprint 4.2
 
 export const apiService = {
   // --- AUTH ---

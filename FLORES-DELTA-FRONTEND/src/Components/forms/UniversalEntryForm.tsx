@@ -6,13 +6,13 @@ import {
     FileText, Camera, Droplets, Scissors, Leaf, RefreshCw,
     Mic, Square, Trash2, CheckCircle, Loader2, Calendar
 } from "lucide-react";
-import { Button } from "@/Components/ui/button";
-import { Input } from "@/Components/ui/input";
-import { Textarea } from "@/Components/ui/textarea";
-import { Label } from "@/Components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import {
     Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/Components/ui/select";
+} from "@/components/ui/select";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiService } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
